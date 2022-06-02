@@ -1,0 +1,17 @@
+ML1_dat <- read_spss(here("Data/Original Data/ManyLabs1/CleanedDataset.sav"))
+
+cp_df <- data.frame(sysjust1 = ML1_dat$sysjust1,
+                    sysjust2 = ML1_dat$sysjust2,
+                    sysjust3 = ML1_dat$sysjust3,
+                    sysjust4 = ML1_dat$sysjust4,
+                    sysjust5 = ML1_dat$sysjust5,
+                    sysjust6 = ML1_dat$sysjust6,
+                    sysjust7 = ML1_dat$sysjust7,
+                    sysjust8 = ML1_dat$sysjust8,
+                    source = ML1_dat$referrer) %>%
+  mutate(source = as.factor(source)) %>%
+  filter(!is.na(ML1_dat$Sysjust))
+
+write.csv(cp_df, here("Data/Extracted (Project) Data/Caruso_Currency_Priming.csv"), row.names = FALSE)
+
+rm(cp_df, ML1_dat)

@@ -1,0 +1,23 @@
+### Shnabel - needs-based model of reconciliation
+
+# Willingness to Reconcile
+
+ml5_computed <- fread(here("Data/Original Data/ManyLabs5/Shnabel/ml5_computed_dataset.csv"))
+
+nb_df <- data.frame(WTR.angry = ml5_computed$WTR.angry,
+                    WTR.posNeg.person = ml5_computed$WTR.posNeg.person,
+                    WTR.posNeg.relation = ml5_computed$WTR.posNeg.relation,
+                    WTR.closeness = ml5_computed$WTR.closeness,
+                    WTR.futureRel = ml5_computed$WTR.futureRel,
+                    WTR.willreconcile = ml5_computed$WTR.willreconcile,
+                    WTR.amends = ml5_computed$WTR.amends,
+                    WTR.relFuture = ml5_computed$WTR.relFuture,
+                    WTR.relDamage = ml5_computed$WTR.relDamage,
+                    WTR.futureDiscourse = ml5_computed$WTR.futureDiscourse,
+                    source = ml5_computed$site)
+
+
+write.csv(nb_df, here("Data/Extracted (Project) Data/Shnabel_Willingness_Reconcile.csv"), row.names = FALSE)
+
+rm(el_df, ml5_computed)
+

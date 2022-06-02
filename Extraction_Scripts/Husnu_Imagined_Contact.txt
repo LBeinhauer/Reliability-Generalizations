@@ -1,0 +1,15 @@
+#### Imagined Contact ### 
+
+ML1_dat <- read_spss(here("Data/Original Data/ManyLabs1/CleanedDataset.sav"))
+
+ic_df <- data.frame(imaginedexplicit1 = ML1_dat$imaginedexplicit1,
+                    imaginedexplicit2 = ML1_dat$imaginedexplicit2,
+                    imaginedexplicit3 = ML1_dat$imaginedexplicit3,
+                    imaginedexplicit4 = ML1_dat$imaginedexplicit4,
+                    source = ML1_dat$referrer) %>%
+  mutate(source = as.factor(source)) %>%
+  filter(!is.na(ML1_dat$Imagineddv))
+
+write.csv(ic_df, here("Data/Extracted (Project) Data/Husnu_Imagined_Contact.csv"), row.names = FALSE)
+
+rm(ic_df, ML1_dat)

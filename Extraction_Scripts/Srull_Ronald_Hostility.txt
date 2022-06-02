@@ -1,0 +1,146 @@
+### RRR9 - Cheating & Hostility Priming (Mazar Srull)
+
+
+
+# Ronald Hostility Ratings
+
+
+
+# Again, RRR9 requires us to combine data from the different labs ourselves. However, large parts of the Replication author's code
+#   could be used here. 
+
+# relevant directory
+dir <- here("Data/Original Data/RRR9")
+
+# get raw data from working directory and create combined dataset
+
+# Note: all of the files that will contribute to the meta-analysis must
+# be .csv files in the working directory
+
+# the following code combined the data from the different labs. Unfortunately, it creates an abundance of empty columns, which will
+#  be dropped further down the line.
+
+# ignore errors
+data <- list.files(path = dir, pattern = "*.csv", full.names = TRUE) %>%
+  map_df(~read_csv(., col_types = cols(.default = "c"))) %>%
+  mutate_at(vars(starts_with("ron")), funs(as.numeric)) %>%
+  mutate_at(vars(starts_with("behavior")), funs(as.numeric)) %>%
+  filter(!is.na(id)) # drops the empty rows from the datasets
+
+
+# some labs need to be renamed
+data[data$lab.name == "Nahari", ]$lab.name <- "klein Selle \\& Rozmann" # these came from same lab
+# but given two different 
+# names
+data[data$lab.name == "klein Selle", ]$lab.name <- "klein Selle \\& Rozmann" # these came from same lab
+# but given two different 
+# names
+data$lab.name <- gsub("\\\\", "", data$lab.name)            # removes extra back slash
+# before ampersand
+
+data[data$lab.name == "LoschelderMechtel", ]$lab.name <- "Loschelder" # was listed as
+# both researchers
+data[data$lab.name == "Voracek", ]$lab.name <- "Tran"       # lab.name variable
+# was listed as second author
+
+data$lab.name <- toupper(data$lab.name)               # converting lab names to uppercase
+data$language <- toupper(data$language)               # converting lab names to uppercase
+
+###
+# compute perceptions of Ronalds hostility
+###
+
+# first, reverse code items
+data$ron.kindR        <- 10 - data$ron.kind
+data$ron.considerateR <- 10 - data$ron.considerate
+data$ron.thoughtfulR  <- 10 - data$ron.thoughtful
+
+# second, ensure there are no missing values for the trait ratings
+data$traitMissing <- rowSums(cbind(is.na(data$ron.hostile), 
+                                   is.na(data$ron.unfriendly),
+                                   is.na(data$ron.dislikable), 
+                                   is.na(data$ron.kindR),
+                                   is.na(data$ron.considerateR), 
+                                   is.na(data$ron.thoughtfulR))) 
+
+# third, average the individual trait ratings together
+# for those who were not missing any trait ratings
+data$hostility <- ifelse(data$traitMissing > 0,
+                         NA,
+                         rowMeans(cbind(data$ron.hostile, data$ron.unfriendly,
+                                        data$ron.dislikable, data$ron.kindR,
+                                        data$ron.considerateR, data$ron.thoughtfulR), 
+                                  na.rm = TRUE)) 
+
+
+data$behavMissing <- rowSums(cbind(is.na(data$behavior2), 
+                                   is.na(data$behavior5),
+                                   is.na(data$behavior8), 
+                                   is.na(data$behavior10),
+                                   is.na(data$behavior13)))
+
+# second, average the individual trait ratings together
+# for those who were not missing any behavior ratings
+
+data$amb.behaviors <- ifelse(data$behavMissing > 0,
+                             NA,
+                             rowMeans(cbind(data$behavior2, data$behavior5,
+                                            data$behavior8, data$behavior10,
+                                            data$behavior13), 
+                                      na.rm = TRUE)) 
+
+finalRon <- subset(data, 
+                   data$sw.prime.complete == "complete" &       # completed prime
+                     data$traitMissing == 0 &                   # completed hostile trait ratings
+                     (data$inclusion == "inclusion Srull only" |# not excluded for other reason
+                        data$inclusion == "inclusion both RRR"))            
+names(finalRon)
+
+# for whatever reason, the code now computes a total 16422 variables, largely empty columns.
+#  before 23/12/21, it used to call those colums X, followed by numbers, starting on 23/12/21, it started calling
+#  them ... (3 dots) followed by numbers. This is tricky to escape using regex, but works using the following code:
+finalRon_relevant <- finalRon[,-grep("^X", names(finalRon))]
+
+ch_df <- finalRon_relevant
+
+# items for scale - ronald hostility ratings
+ch_rh_items_c.idx <- which(names(ch_df) %in% 
+                             c("ron.hostile", "ron.unfriendly", "ron.dislikable", "ron.kindR", "ron.considerateR", "ron.thoughtfulR"))
+# items for scale - behaviour hostility ratings
+ch_bh_items_c.idx <- which(names(ch_df) %in%
+                             c("behavior2", "behavior5", "behavior8", "behavior10", "behavior13"))
+
+# add the required sourece-column
+ch_df <- ch_df %>%
+  mutate(source = lab.name)
+
+
+# excluding labs, with fewer than 100 participants in a condition, as required by the replication authors
+exclusion_labs_ch <- sapply(as.matrix(unique(ch_df$source)), FUN = function(x){
+  n_1 <- nrow(ch_df[which(ch_df$source == x & ch_df$sw.prime.cond == "neutral"),])
+  n_2 <- nrow(ch_df[which(ch_df$source == x & ch_df$sw.prime.cond == "hostile"),])
+  return(c(n_1,n_2))
+})
+
+# transpose of this matrix is easier to work with
+n_mat_ch <- t(exclusion_labs_ch)
+excl_labs_ch <- names(which(apply(n_mat_ch, MARGIN = 1, min) < 100)) # identify labs with n < 100
+ch_df <- ch_df[which(!ch_df$source %in% excl_labs_ch),]  # retain only labs with n > 99
+
+# retain only the relevant columns, as a large number of columns (more than 16300) are empty
+ch_df <- ch_df[,c(which(names(ch_df) %in% c("lab.name", "inclusion", "sw.prime.cond", "sw.prime.complete", "hostility", "behavMissing", "amb.behaviors", "source")), 
+                  grep("^ron", names(ch_df)),
+                  grep("^behavior", names(ch_df)),
+                  grep("^raven", names(ch_df)))]
+
+
+
+
+# retain only columns relevant for this scale:
+ch_df <- ch_df[,c("ron.hostile", "ron.unfriendly", "ron.dislikable", "ron.kindR", "ron.considerateR", "ron.thoughtfulR", "source")]
+
+write.csv(ch_df, here("Data/Extracted (Project) Data/Srull_Ronald_Hostility.csv"), row.names = FALSE)
+
+rm(list=ls())
+
+

@@ -1,0 +1,98 @@
+### RRR8 -  relation between perception and behaviour  (Dijksterhuis & van Knippenberg, 1998)
+
+
+# Trivia
+
+
+# Similarly to RRR5 and RRR6, in RRR8 we need to extract and combine different data files to obtain a single file as required for
+#  out analyses. In the relevant subdirectory, we find further subdirectories for each replication lab. Each subdirectory contains
+#  a number of csv files, one for each participant. The extraction and combining process will take place of the following lines.
+# Fortunately, we could use some fo the codde form the replication authors.
+
+# List all subdirectories of the different replication sites
+folders <- list.dirs(here("Data/Original Data/RRR8"))
+
+# prepare an empty list object, as well as a counting object
+data_complete <- list()
+count <- 0
+
+# in for-loop across directories, first identify file-names, identify the csv-files, read those and paste its content into a list
+for(i in folders[-1]){ # ignore first directory, as this is the directory containing the other directories
+  files <- list.files(path = i)
+  complete_file <- files[grep("_complete.csv", files)]
+  data <- fread(paste0(i, "/", complete_file))
+  
+  count <- count + 1
+  data_complete[[count]] <- data
+}
+
+# check number of participants per lab
+unlist(lapply(data_complete, nrow))
+
+# check number of participants per condition combination per lab
+n_per_dataset <- lapply(data_complete, FUN = function(x){
+  n1 = nrow(x[which(x$sex_r == 1 & prime_code == 1),])
+  n2 = nrow(x[which(x$sex_r == 1 & prime_code == 0),])
+  n3 = nrow(x[which(x$sex_r == 0 & prime_code == 1),])
+  n4 = nrow(x[which(x$sex_r == 0 & prime_code == 0),])
+  return(list(n1, n2, n3, n4))
+})
+
+# number of participants per lab
+unlisted_ns <- lapply(n_per_dataset, unlist)
+
+# according to the authors, only labs collecting data from 25 subjects or more is egligible for analysis
+unlist(lapply(unlisted_ns, min)) >= 25
+data_complete_cleaned <- data_complete[unlist(lapply(unlisted_ns, min)) >= 25]
+
+# identify relevant columns we may need for further analyses.
+relevant_cols <- c(names(data_complete_cleaned[[1]])[grep("triv[0-9]", names(data_complete_cleaned[[1]]))], 
+                   "sex_r", "age", "skipped_raw", "country", "test_cond", "correct_pct", "correct_skip_pct",
+                   "enough_males", "datetime", "subjID", "prime_code", "prime_condition", "sex", "prime_response")
+
+# prepare an empty object
+data_complete_cleaned_df <- NULL
+
+# extract the names of the leading authors of each replication, for the source-column:
+str_path_last_element <- function(path){
+  strsplit(path, "/")[[1]][length(strsplit(path, "/")[[1]])]
+}
+sources <- sapply(folders[-1], str_path_last_element, USE.NAMES = F)[unlist(lapply(unlisted_ns, min)) >= 25]
+sources <- str_sub(sources, start = 1, end = -6)
+
+# prepare counting object
+count <- 0
+
+# over the following for-loop, the source-column containing names of the proper leading authors is added to the dataframe
+for(i in data_complete_cleaned){
+  count <- count + 1
+  
+  data <- as.data.frame(i)[,relevant_cols] %>%
+    mutate(source = sources[count])
+  
+  data_complete_cleaned_df <- rbind(data_complete_cleaned_df, data)
+}
+
+
+# we have to remove Tong from the dataset, while their sample size were sufficiently large for the inclusion criteria ( >24 per cell),
+#   they were excluded based on other (currently not clear) grounds  - possibly as their script was crashing and data collection
+#   had to be done sometime later.
+rb_df <- data_complete_cleaned_df[-which(data_complete_cleaned_df$source == "Tong"),]
+
+# identify items relevant to scale of trivia-estions
+rb_item_vec <- grep("triv.*correct", names(rb_df))
+rb_df[,rb_item_vec] <- as.numeric(rb_df[,rb_item_vec] == TRUE) # transform these items' responses to numeric for analysis
+
+# further remove a number of abundant columns not needed for our purposes.
+rb_df <- rb_df[,-c(grep("_raw$", names(rb_df)), which(names(rb_df) %in% c("datetime", "subjID", "prime_condition", "sex", "prime_response")))]
+
+
+# keep only variables relevant for this scale:
+rb_df <- rb_df[,c(names(rb_df)[grep("^triv", names(rb_df))], "source")]
+
+
+
+write.csv(rb_df, here("Data/Extracted (Project) Data/Dijksterhuis_trivia.csv"), row.names = FALSE)
+
+
+rm(list=ls())

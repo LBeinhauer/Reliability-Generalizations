@@ -1,0 +1,127 @@
+### RRR 5 - Close Relationships (Finkel et al, 2002)
+
+
+# Neglect Forgiveness
+
+
+
+
+# Similarly to the data in RRR3, no single data file at the level required for our analysis exists. Instead, raw data is found
+#  in a sub-directory, containing participant-level data for each replication site. Over the following lines, we will extract 
+#  and combine the data from the different labs
+
+# parts of the code stems from the replication authors.
+
+convert <- function(x){as.numeric(as.character(x))} # function that converts a column of Qualtrix output to useable form in R
+
+# identify all files in the specific subdirectory
+csv <- list.files(here("Data/Original Data/RRR5/All_Data/Data"), pattern="*.csv", 
+                  full.names = FALSE) # names of all csv files in folder
+# include the path in the file-names, so we can call them more easily
+full.csv <- list.files(here("Data/Original Data/RRR5/All_Data/Data"), pattern="*.csv", 
+                       full.names = TRUE)
+# extract the author's name from the data files
+authors <- sapply(strsplit(csv,split='_',fixed=TRUE),function(x){x[1]}) # authors' names
+k <- length(authors) # number of labs
+data.all <- lapply(full.csv, read.csv, header=FALSE) # Compile data from all labs into a single list
+names(data.all) <- authors # assign author name to each dataset in list
+
+# preparatory vector
+ms <- rep(0,k)
+for(l in 1:k){
+  data2 <- data.all[[l]]
+  colnames(data2) <- apply(data2[1,],2,as.character) # label columns
+  data2 <- data2[-(1:2),] # delete first two irrelevant rows
+  Exclude <- convert(data2$Exclude) # exclusion criteria
+  if(max(Exclude)==2) ms[l] <- 1 # flag lab with any subjects that are Exclude=2
+}
+
+# adjusted!
+data.all.unlisted <- NULL
+
+for(i in 1:length(data.all)){
+  colnames(data.all[[i]]) <- as.character(data.all[[i]][1,])   # assign column names
+  data.all[[i]] <- data.all[[i]][-c(1:2),]  # drop first two now irrelevant rows
+  data.all.unlisted <- rbind(data.all.unlisted, data.all[[i]][,1:140] %>%   # combine data from the first 140 columns of each
+                               mutate(source = authors[i]))                 #  replication site's data file
+}
+
+# remove a couple of abundant columns 
+data.all.unlisted <- data.all.unlisted[,-c(116, 127, 128, 129, 130, 131, 132)]
+
+# transform to data-frame, and name similar to prior data frames in this document
+cr_df <- as.data.frame(data.all.unlisted)
+
+# As the file consists of a large number of columns, the relevant items for the specific subscales are collected here:
+
+# Subjective Commitment: Manipulation Check
+RRR5_SJ_items <- c("Q3.3_1" ,"Q3.3_2" ,"Q3.3_3" ,"Q3.3_4" ,"Q3.3_5" ,"Q3.3_6" ,"Q3.3_7")
+# exit forgiveness
+RRR5_EF_items <- c("Q2.2_1" ,"Q2.3_3" ,"Q2.4_1" ,"Q2.5_2" ,"Q2.6_2" ,"Q2.7_4" ,"Q2.8_2" ,"Q2.9_4" ,
+                   "Q2.10_1" ,"Q2.11_4" ,"Q2.12_3" ,"Q2.13_4")
+# neglect forgiveness
+RRR5_NF_items <- c("Q2.2_4", "Q2.3_2", "Q2.4_2", "Q2.5_4", "Q2.6_1", "Q2.7_2", "Q2.8_4", "Q2.9_2", 
+                   "Q2.10_4", "Q2.11_1", "Q2.12_1", "Q2.13_1")
+# Voice fogiveness
+RRR5_VF_items <- c("Q2.2_2", "Q2.3_10", "Q2.4_3", "Q2.5_1", "Q2.6_4", "Q2.7_1", "Q2.8_3", "Q2.9_3",
+                   "Q2.10_2", "Q2.11_2", "Q2.12_4", "Q2.13_3")
+# loyalty forgiveness
+RRR5_LF_items <- c("Q2.2_3", "Q2.3_1", "Q2.4_4", "Q2.5_3", "Q2.6_3", "Q2.7_3", "Q2.8_1", "Q2.9_1", 
+                   "Q2.10_3", "Q2.11_3", "Q2.12_2", "Q2.13_2")
+# Self-Deception (SD)
+RRR5_SD_items <- c("Q4.1_1", "Q4.1_2", "Q4.1_3", "Q4.1_4", "Q4.1_5", "Q4.2_1", "Q4.2_2", "Q4.2_3", 
+                   "Q4.2_4", "Q4.2_5", "Q4.3_1", "Q4.3_2", "Q4.3_3", "Q4.3_4", "Q4.3_5", "Q4.4_1", 
+                   "Q4.4_2", "Q4.4_3", "Q4.4_4", "Q4.4_5")
+# Impression Management
+RRR5_IM_items <- c("Q4.5_1", "Q4.5_2", "Q4.5_3", "Q4.5_4", "Q4.5_5", "Q4.6_1", "Q4.6_2", "Q4.6_3",
+                   "Q4.6_4", "Q4.6_5", "Q4.7_1", "Q4.7_2", "Q4.7_3", "Q4.7_4", "Q4.7_5", "Q4.8_1",
+                   "Q4.8_2", "Q4.8_3", "Q4.8_4", "Q4.8_5")
+
+# as these items are unfortunately not stored as the correct class (?), we use our convert function on 
+cr_df[,c(RRR5_SJ_items, RRR5_EF_items, RRR5_NF_items, RRR5_VF_items, RRR5_LF_items, RRR5_SD_items, RRR5_IM_items)] <- 
+  apply(cr_df[,c(RRR5_SJ_items, RRR5_EF_items, RRR5_NF_items, RRR5_VF_items, RRR5_LF_items, RRR5_SD_items, RRR5_IM_items)], 2, convert)
+
+
+# A number of items need recoding, this is done over the following lines:
+cr_df[,RRR5_SJ_items[4]] <- 8-cr_df[,RRR5_SJ_items[4]] # reverse code 4th SubjCommit item
+
+# cr_df_2 <- na.omit(cr_df[,c(RRR5_EF_items, RRR5_NF_items, RRR5_VF_items, RRR5_LF_items)])
+
+
+# overall forgiveness
+# Overall <- apply(cbind(8-Exit,8-Neglect,Voice,Loyalty),1,mean) # calculate Overall by averaging the means of reversed Exit, reversed Neglect, Voice, and Loyalty
+
+cr_df[,RRR5_SD_items[seq(2,20,2)]] <- 8-cr_df[,RRR5_SD_items[seq(2,20,2)]] # reverse score even items
+cr_df[,RRR5_SD_items] <- ifelse(cr_df[,RRR5_SD_items] > 5, 1, 0) # extreme responses (6,7) = 1, else = 0
+# SD <- rowSums(SD.data) # number of extreme responses per subject
+# SD.c <- SD-mean(SD,na.rm=TRUE) # mean-center self deception (omitting missing scores in mean calculation)
+
+cr_df[,RRR5_IM_items[seq(1,19,2)]] <- 8-cr_df[,RRR5_IM_items[seq(1,19,2)]] # reverse score odd items
+# cr_df$Q4.6_4 <- as.integer(cr_df$Q4.6_4)
+# cr_df$Q4.7_3 <- as.integer(cr_df$Q4.7_3)
+# cr_df$Q4.7_4 <- as.integer(cr_df$Q4.7_4)
+
+cr_df[,RRR5_IM_items] <- ifelse(cr_df[,RRR5_IM_items] > 5, 1, 0) # extreme responses (6,7) = 1, else = 0
+# IM <- rowSums(IM.data) # number of extreme responses per subject
+# IM.c <- IM-mean(IM,na.rm=TRUE) # mean-center impression management (omitting missing scores in mean calculation)
+
+
+# Again, we drop some rows (why is unclear, decision by PI of RRR5?)
+cr_df <- cr_df[-c(107, 134, 1276, 1281, 1499, 1502),] 
+
+#cr_df <- cr_df[which(cr_df$Exclude == 0 | cr_df$Exclude == 1),]
+
+# retain only participants, which require no exclusion from further analyses
+cr_df <- cr_df[which(cr_df$Exclude == 0),]
+
+# A number of abundant variables remain in the file. As their names start with either "V" or "Location" we cam easily drop those:
+cr_df <- cr_df[,-c(grep("^V", names(cr_df)), grep("^Location", names(cr_df)))]
+
+
+# only keeping the variables explicitly relevant for this scale:
+cr_df <- cr_df[,c(RRR5_NF_items, "source")]
+
+
+write.csv(cr_df, here("Data/Extracted (Project) Data/Finkel_Neglect_Forgiveness.csv"), row.names = FALSE)
+
+rm(list=ls())

@@ -1,0 +1,24 @@
+##### Moral Foundations of liberals vs Conservatives #####
+
+### Graham
+
+ML2_S1 <- fread(here("Data/Original Data/ManyLabs2/ML2_S1.csv"))
+
+# data on Graham-experiments on slate 1
+# the correct items are selected
+Graham_df <- data.frame(item8 = ML2_S1$grah1.8,
+                        item9 = ML2_S1$grah1.9,
+                        item10 = ML2_S1$grah1.10,
+                        item11 = ML2_S1$grah1.11,
+                        item12 = ML2_S1$grah1.12,
+                        item13 = ML2_S1$grah1.13,
+                        item14 = ML2_S1$grah1.14,
+                        item15 = ML2_S1$grah1.15,
+                        item16 = ML2_S1$grah1.16,
+                        source = ML2_S1$Source.Primary) %>%
+  filter(ML2_S1$politics %in% 1:7, !is.na((item8 + item9 + item10 + item11 + item12 + item13 + item14 + item15 + item16)))  
+					# participants with score on politics within 1-7 and non-missing data on the DV is included
+
+write.csv(Graham_df, here("Data/Extracted (Project) Data/Graham_Moral_Foundations.csv"), row.names = FALSE)
+
+rm(Graham_df, ML2_S1)

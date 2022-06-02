@@ -1,0 +1,20 @@
+### Cacioppo - Elaboration likelihood / Issue Involvement
+
+## Argument Quality
+
+ML3_dat <- fread(here("Data/Original Data/ManyLabs3/ML3AllSitesandmTurk.csv"))
+
+el_dat <- data.frame(elm1 = ML3_dat$elm_01,  
+                     elm2 = ML3_dat$elm_02,
+                     elm3 = ML3_dat$elm_03,
+                     elm4 = ML3_dat$elm_04,
+                     elm5 = ML3_dat$elm_05,
+                     source = ML3_dat$Site)      # Replication site
+
+
+el_df <- as.data.frame(na.omit(el_dat)) # participants with missing observations are dropped
+
+
+write.csv(el_df, here("Data/Extracted (Project) Data/Cacioppo_Argument_Quality.csv"), row.names = FALSE)
+
+rm(el_df, ML3_dat)

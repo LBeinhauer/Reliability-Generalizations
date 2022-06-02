@@ -1,0 +1,21 @@
+### Cacioppo - Elaboration likelihood / Issue Involvement
+
+## Need for Cognition
+
+ML3_dat <- fread(here("Data/Original Data/ManyLabs3/ML3AllSitesandmTurk.csv"))
+
+el_dat <- data.frame(NFC1 = ML3_dat$nfc_01,    
+                     NFC2 = (6 - ML3_dat$nfc_02),   # recoding the nfc items
+                     NFC3 = (6 - ML3_dat$nfc_03),
+                     NFC4 = ML3_dat$nfc_04,
+                     NFC5 = ML3_dat$nfc_05,
+                     NFC6 = (6 - ML3_dat$nfc_06),
+                     source = ML3_dat$Site)      # Replication site
+
+
+el_df <- as.data.frame(na.omit(el_dat)) # participants with missing observations are dropped
+
+
+write.csv(el_df, here("Data/Extracted (Project) Data/Cacioppo_Need_Cognition.csv"), row.names = FALSE)
+
+rm(el_df, ML3_dat)

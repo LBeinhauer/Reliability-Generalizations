@@ -1,0 +1,18 @@
+### Shnabel - needs-based model of reconciliation
+
+# Emotional Need Acceptance
+
+ml5_computed <- fread(here("Data/Original Data/ManyLabs5/Shnabel/ml5_computed_dataset.csv"))
+
+nb_df <- data.frame(EN.reasons = ml5_computed$EN.reasons,              # the other 5 are EN.acceptance
+                    EN.noHarm = ml5_computed$EN.noHarm,
+                    EN.amMoral = ml5_computed$EN.amMoral,
+                    EN.noGrudge = ml5_computed$EN.noGrudge,
+                    EN.hardBoth = ml5_computed$EN.hardBoth,
+                    source = ml5_computed$site)
+
+
+write.csv(nb_df, here("Data/Extracted (Project) Data/Shnabel_ENeed_Acceptance.csv"), row.names = FALSE)
+
+rm(el_df, ml5_computed)
+

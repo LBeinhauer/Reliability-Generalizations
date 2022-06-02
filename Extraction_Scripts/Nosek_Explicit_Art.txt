@@ -1,0 +1,16 @@
+##### Explicit art attitudes #####
+
+ML1_dat <- read_spss(here("Data/Original Data/ManyLabs1/CleanedDataset.sav"))
+
+ea_df <- data.frame(art1 = ML1_dat$iatexplicitart1,
+                    art2 = ML1_dat$iatexplicitart2,
+                    art3 = ML1_dat$iatexplicitart3,
+                    art4 = ML1_dat$iatexplicitart4,
+                    art5 = ML1_dat$iatexplicitart5,
+                    art6 = ML1_dat$iatexplicitart6,
+                    source = ML1_dat$referrer) %>%
+  filter(ML1_dat$IATEXPfilter == 1, !is.na(ML1_dat$d_art))
+
+write.csv(ea_df, here("Data/Extracted (Project) Data/Nosek_Explicit_Art.csv"), row.names = FALSE)
+
+rm(ea_df, ML1_dat)

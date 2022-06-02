@@ -1,0 +1,65 @@
+### RRR 3 - Intentionallity Attribution (Hart & Albarracin, 2011)
+
+
+# Criminal Intentionality
+
+
+# The data preparation for the RRR3 project is somewhat more complicated. Aggregates lab data for the three scales 
+#   (Detailed Processing, Intention Attribution and Criminal Intentionality) is available in a sub-directory. However, in order
+#   to access data on the individual items, we need to delve deeper. As no aggregated data file at our desired level exisits, we
+#   have to extract and combine the individual SPSS-data files, which contain data for each individual lab.
+
+
+# FInd all file-names in relevant subdirectory, including their path in the file-name
+full_files <- list.files(here("Data/Original Data/RRR3"), full.names = TRUE)
+
+# Find all file-names in relevant subdirectory, WITHOUT path in the file-name
+files <- list.files(here("Data/Original Data/RRR3"), full.names = FALSE)
+
+# Identify all SPSS files
+sav_files <- files[grep("*.sav", files)]
+
+# Extract PI-names from the SPSS-files
+loc_names <- substring(sav_files, 1, (regexpr("_F", sav_files) - 1))
+
+# identify all SPSS-files, including their paths
+file_locations <- full_files[grep("*.sav", full_files)]
+
+# The following for-loop uses the read_sav function from the <haven> library
+#  additionally, it includes a "source" column, using the PI-names
+#  The result is a number of dataframes, with names of their replication PIs
+for(i in 1:length(sav_files)){
+  do.call("<-", 
+          list(loc_names[i], 
+               read_spss(file_locations[i]) %>%
+                 mutate(source = loc_names[i])
+          )
+  )
+}
+
+# The Eerland_MT consisted of too many variables, so we only include the ones, which can be found in the other files
+Eerland_MT <- Eerland_MT[,names(Arnal)]
+
+# combining the files into a single data frame
+ml3_Hart <- rbind(Arnal, Berger, Birt_corrected, Eerland_MT, Eerland_InLab, Ferretti, Knepp, Kurby, Melcher, Michael, Poirier, Prenoveau)
+
+# 
+# for(i in loc_names){
+#   print(paste0(i, " - Perfective N: ", nrow(ml3_Hart[which(ml3_Hart$source == i & ml3_Hart$Condition == 1),])))
+#   print(paste0(i, " - Imperfective N: ", nrow(ml3_Hart[which(ml3_Hart$source == i & ml3_Hart$Condition == 2),])))
+# }
+
+# storing in an object with the more "typical" file name found in this document
+ia_df <- ml3_Hart
+
+# adding a "factor" column
+ia_df <- as.data.frame(ia_df) %>%
+  mutate(factor = Condition)
+
+ia_df <- ia_df[,c("A1", "A2", "A3", "source")] # keep only relevant items for this scale
+
+write.csv(ia_df, here("Data/Extracted (Project) Data/Hart_Criminal_Intentionality.csv"), row.names = FALSE)
+
+
+rm(list = ls())
+

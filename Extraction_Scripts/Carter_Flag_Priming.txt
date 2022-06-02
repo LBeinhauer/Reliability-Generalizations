@@ -1,0 +1,19 @@
+ML1_dat <- read_spss(here("Data/Original Data/ManyLabs1/CleanedDataset.sav"))
+
+##### Flag Priming - Carter #####
+
+fp_df <- data.frame(flagdv1 = ML1_dat$flagdv1, 
+                    flagdv2 = ML1_dat$flagdv2, 
+                    flagdv3 = ML1_dat$flagdv3, 
+                    flagdv4 = ML1_dat$flagdv4, 
+                    flagdv5 = ML1_dat$flagdv5, 
+                    flagdv6 = ML1_dat$flagdv6, 
+                    flagdv7 = ML1_dat$flagdv7, 
+                    flagdv8 = ML1_dat$flagdv8, 
+                    source = ML1_dat$referrer) %>%
+  mutate(source = as.factor(source)) %>%
+  filter(ML1_dat$flagfilter == 1, !is.na(ML1_dat$flagdv))
+
+write.csv(fp_df, here("Data/Extracted (Project) Data/Carter_Flag_Priming.csv"), row.names = FALSE)
+
+rm(fp_df, ML1_dat)

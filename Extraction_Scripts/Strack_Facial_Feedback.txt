@@ -1,0 +1,129 @@
+
+### RRR 6 - Facial Feedback (Strack, Martin, & Stepper, 1988)
+
+
+### Function for RRR6 Data - written by?
+
+# Again, RRR6 requires us to combine data from the different labs ourselves. However, large parts of the Replication author's code
+#   could be used here. 
+
+# a new function to install packages if neccesary
+packages <- function(x) {
+  
+  x <- as.character(match.call()[[2]])
+  
+  if ( ! require(x, character.only = TRUE)) {
+    
+    install.packages(pkgs = x, repos = "http://cran.r-project.org")
+    require(x, character.only = TRUE)    
+  }
+}
+
+packages(BayesFactor)
+packages(compute.es)
+packages(metafor)
+packages(MCMCpack)
+
+# loading functions from two documents the replication authors supplied
+source(here("Data/Original Data/RRR6/RRR6_function_library.R"))
+source(here("Data/Original Data/RRR6/Repfunctionspack.R"))
+
+# identify files, including their paths in respective subdirectory
+files <- list.files(here("Data/Original Data/RRR6"), full.names = TRUE)
+files <- files[grep("*.csv", files)]
+
+# identify individual author names from file-names
+names <- list.files(here("Data/Original Data/RRR6"), full.names = FALSE)
+names <- names[grep("*.csv", names)]
+
+# The following lines use the author's self-defined functions to extract data from the individual lab-files
+dat1 <- facialFeedbackAnalysis(files[1], excludeParticipants = T)
+dat2 <- facialFeedbackAnalysis(files[2], excludeParticipants = T)
+dat3 <- facialFeedbackAnalysis(files[3], excludeParticipants = T)
+dat4 <- facialFeedbackAnalysis(files[4], excludeParticipants = T)
+dat5 <- facialFeedbackAnalysis(files[5], excludeParticipants = T)
+dat6 <- facialFeedbackAnalysis(files[6], excludeParticipants = T)
+dat7 <- facialFeedbackAnalysis(files[7], excludeParticipants = T)
+dat8 <- facialFeedbackAnalysis(files[8], excludeParticipants = T)
+dat9 <- facialFeedbackAnalysis(files[9], excludeParticipants = T)
+dat10 <- facialFeedbackAnalysis(files[10], excludeParticipants = T)
+dat11 <- facialFeedbackAnalysis(files[11], excludeParticipants = T)
+dat12 <- facialFeedbackAnalysis(files[12], excludeParticipants = T)
+dat13 <- facialFeedbackAnalysis(files[13], excludeParticipants = T)
+dat14 <- facialFeedbackAnalysis(files[14], excludeParticipants = T)
+dat15 <- facialFeedbackAnalysis(files[15], excludeParticipants = T)
+dat16 <- facialFeedbackAnalysis(files[16], excludeParticipants = T)
+dat17 <- facialFeedbackAnalysis(files[17], excludeParticipants = T)
+
+# list all files
+data_listRRR6 <- list(dat1, dat2, dat3, dat4, dat5, dat6, dat7, dat8, dat9, dat10, dat11, dat12, dat13, dat14, dat15, dat16, dat17)
+
+# calculate how many participants per study are included in the data
+n.per.study <- unlist(lapply(data_listRRR6, FUN = function(x) nrow(x$dataRaw)))
+total.n <- sum(n.per.study) # how many in total
+
+# prepare a matrix, where relevant data will be stored
+data.mat <- matrix(NA, nrow = total.n, ncol = 7)
+
+# using a for-loop, data from the list's elements is extracted and stored in the prepared matrix
+for(i in 1:length(files)){
+  data.mat[((sum(n.per.study[1:i]) - (n.per.study[i]-1)):sum(n.per.study[1:i])), 1] <- data_listRRR6[[i]]$dataRaw$ratingCartoon1
+  data.mat[((sum(n.per.study[1:i]) - (n.per.study[i]-1)):sum(n.per.study[1:i])), 2] <- data_listRRR6[[i]]$dataRaw$ratingCartoon2
+  data.mat[((sum(n.per.study[1:i]) - (n.per.study[i]-1)):sum(n.per.study[1:i])), 3] <- data_listRRR6[[i]]$dataRaw$ratingCartoon3
+  data.mat[((sum(n.per.study[1:i]) - (n.per.study[i]-1)):sum(n.per.study[1:i])), 4] <- data_listRRR6[[i]]$dataRaw$ratingCartoon4
+  data.mat[((sum(n.per.study[1:i]) - (n.per.study[i]-1)):sum(n.per.study[1:i])), 5] <- data_listRRR6[[i]]$dataRaw$condition # factor
+  data.mat[((sum(n.per.study[1:i]) - (n.per.study[i]-1)):sum(n.per.study[1:i])), 6] <- strsplit(names[i], "_")[[1]][1]   # source
+  data.mat[((sum(n.per.study[1:i]) - (n.per.study[i]-1)):sum(n.per.study[1:i])), 7] <- i   # number of data file, for good measure
+}
+
+# transform to data.frame
+data.df <- as.data.frame(data.mat, make.names = T)
+
+# assign names to columns
+names(data.df) <- c("ratingCartoon1", "ratingCartoon2", "ratingCartoon3", "ratingCartoon4", "factor", "leadingAuthor", "source")
+
+table(data.df$leadingAuthor)
+
+# again, assess number of participants - check with dataframe?
+n.per.study2 <- unlist(lapply(data_listRRR6, FUN = function(x) nrow(x$dataAnalysis)))
+total.n2 <- sum(n.per.study2)
+
+
+# repeat above procedure
+
+###################################################
+### why is $dataAnalysis superior to $dataRaw?? ###
+###################################################
+
+
+data.mat2 <- matrix(NA, nrow = total.n2, ncol = 8)
+
+for(i in 1:length(files)){
+  data.mat2[((sum(n.per.study2[1:i]) - (n.per.study2[i]-1)):sum(n.per.study2[1:i])), 1] <- data_listRRR6[[i]]$dataAnalysis$ratingCartoon1
+  data.mat2[((sum(n.per.study2[1:i]) - (n.per.study2[i]-1)):sum(n.per.study2[1:i])), 2] <- data_listRRR6[[i]]$dataAnalysis$ratingCartoon2
+  data.mat2[((sum(n.per.study2[1:i]) - (n.per.study2[i]-1)):sum(n.per.study2[1:i])), 3] <- data_listRRR6[[i]]$dataAnalysis$ratingCartoon3
+  data.mat2[((sum(n.per.study2[1:i]) - (n.per.study2[i]-1)):sum(n.per.study2[1:i])), 4] <- data_listRRR6[[i]]$dataAnalysis$ratingCartoon4
+  data.mat2[((sum(n.per.study2[1:i]) - (n.per.study2[i]-1)):sum(n.per.study2[1:i])), 5] <- data_listRRR6[[i]]$dataAnalysis$condition
+  data.mat2[((sum(n.per.study2[1:i]) - (n.per.study2[i]-1)):sum(n.per.study2[1:i])), 6] <- strsplit(names[i], "_")[[1]][1]
+  data.mat2[((sum(n.per.study2[1:i]) - (n.per.study2[i]-1)):sum(n.per.study2[1:i])), 7] <- i
+  data.mat2[((sum(n.per.study2[1:i]) - (n.per.study2[i]-1)):sum(n.per.study2[1:i])), 8] <- data_listRRR6[[i]]$dataAnalysis$meanCartoonRating
+}
+
+
+names(data.mat2) <- c("ratingCartoon1", "ratingCartoon2", "ratingCartoon3", "ratingCartoon4", "factor", "leadingAuthor", "source", "DV")
+
+data.df2 <- as.data.frame(data.mat2, make.names = T)
+
+names(data.df2) <- c("ratingCartoon1", "ratingCartoon2", "ratingCartoon3", "ratingCartoon4", "factor", "leadingAuthor", "source", "DV")
+
+table(data.df2$leadingAuthor)
+
+
+sm_df <- data.df2
+
+sm_df <- data.frame(sapply(sm_df[,grep("rating", names(sm_df))], as.numeric),
+		    source = sm_df$leadingAuthor)
+
+write.csv(sm_df, here("Data/Extracted (Project) Data/Strack_Facial_Feedback.csv"), row.names = FALSE)
+
+rm(list = ls())

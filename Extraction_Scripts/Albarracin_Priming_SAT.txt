@@ -1,0 +1,37 @@
+#### Albarracin - Actiom Priming SAT
+
+# data on the albarracin replication project in ML5 is divided over two data files, one containing lab-data, one containing MTurk data
+dtml5 <- as.data.table(read_excel(here("Data/Original Data/ManyLabs5/Albarracin/ML5 Alb 5 Revised Protocol.xlsx")))     # lab-data
+dtmturk <- as.data.table(read_excel(here("Data/Original Data/ManyLabs5/Albarracin/ML5 Alb 5 RPP Protocol mTurk.xlsx"))) # MTurk-data
+
+
+# albarracin-experiment consists of responses to 21 SAT-like questions
+#  the lab-data and the mturk-data is ideally combined for further analysis
+ap_df <- data.frame(source = c(dtml5$Location, rep("Mturk", nrow(dtmturk))),
+                    SAT1 = c(dtml5$SAT1, dtmturk$SAT1),
+                    SAT2 = c(dtml5$SAT2, dtmturk$SAT2),
+                    SAT3 = c(dtml5$SAT3, dtmturk$SAT3),
+                    SAT4 = c(dtml5$SAT4, dtmturk$SAT4),
+                    SAT5 = c(dtml5$SAT5, dtmturk$SAT5),
+                    SAT6 = c(dtml5$SAT6, dtmturk$SAT6),
+                    SAT7 = c(dtml5$SAT7, dtmturk$SAT7),
+                    SAT8 = c(dtml5$SAT8, dtmturk$SAT8),
+                    SAT9 = c(dtml5$SAT9, dtmturk$SAT9),
+                    SAT10 = c(dtml5$SAT10, dtmturk$SAT10),
+                    SAT11 = c(dtml5$SAT11, dtmturk$SAT11),
+                    SAT12 = c(dtml5$SAT12, dtmturk$SAT12),
+                    SAT13 = c(dtml5$SAT13, dtmturk$SAT13),
+                    SAT14 = c(dtml5$SAT14, dtmturk$SAT14),
+                    SAT15 = c(dtml5$SAT15, dtmturk$SAT15),
+                    SAT16 = c(dtml5$SAT16, dtmturk$SAT16),
+                    SAT17 = c(dtml5$SAT17, dtmturk$SAT17),
+                    SAT18 = c(dtml5$SAT18, dtmturk$SAT18),
+                    SAT19 = c(dtml5$SAT19, dtmturk$SAT19),
+                    SAT20 = c(dtml5$SAT20, dtmturk$SAT20),
+                    SAT21 = c(dtml5$SAT21, dtmturk$SAT21)
+)
+
+
+write.csv(ap_df, here("Data/Extracted (Project) Data/Albarracin_Priming_SAT.csv"), row.names = FALSE)
+
+rm(el_df, dtml5, dtmturk)

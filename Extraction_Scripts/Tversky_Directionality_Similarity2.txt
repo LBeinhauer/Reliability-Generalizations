@@ -1,0 +1,46 @@
+##### Directionality and similarity #####
+
+### Tversky
+
+ML2_S2 <- fread(here("Data/Original Data/ManyLabs2/ML2_S2.csv"))
+
+#  data on the Tversky-experiments is found on slate 2
+Tversky_dat <- data.frame(pair2.2 = ML2_S2$gati2s.2,   # variables gati2s. consist of the same similarity ratings, but with
+                          pair2.3 = ML2_S2$gati2s.3,   #   countries displayed in reverse order
+                          pair2.5 = ML2_S2$gati2s.5,
+                          pair2.11 = ML2_S2$gati2s.11,
+                          pair2.12 = ML2_S2$gati2s.12,
+                          pair2.14 = ML2_S2$gati2s.14,
+                          pair2.16 = ML2_S2$gati2s.16,
+                          pair2.17 = ML2_S2$gati2s.17,
+                          pair2.18 = ML2_S2$gati2s.18,
+                          pair2.19 = ML2_S2$gati2s.19,
+                          pair2.22 = ML2_S2$gati2s.22,
+                          pair2.4 = ML2_S2$gati2s.4,
+                          pair2.6 = ML2_S2$gati2s.6,
+                          pair2.7 = ML2_S2$gati2s.7,
+                          pair2.8 = ML2_S2$gati2s.8,
+                          pair2.9 = ML2_S2$gati2s.9,
+                          pair2.10 = ML2_S2$gati2s.10,
+                          pair2.13 = ML2_S2$gati2s.13,
+                          pair2.15 = ML2_S2$gati2s.15,
+                          pair2.20 = ML2_S2$gati2s.20,
+                          pair2.21 = ML2_S2$gati2s.21,
+                          factor1 = ifelse(!is.na(ML2_S2$gati1s.2), 1, ML2_S2$gati2s.2),  # conditions are differentiated by assessing
+                          factor2 = ifelse(!is.na(ML2_S2$gati2s.2), 0, ML2_S2$gati1s.2),  #  whether data on either gati1s or gati2s
+                          source = ML2_S2$Source.Primary) %>%                             #  is non-missing.
+  mutate(factor = ifelse(factor1 == 1, factor1, factor2)) %>%
+  filter(!is.na(factor))
+
+Tversky_df <- Tversky_dat %>%
+  mutate(DV = rowMeans(Tversky_dat[,1:21])) %>%  # DV is mean aggregate of
+                                                         #  21 similarity ratings
+
+  filter(!is.na(DV))
+
+Tversky_df <- Tversky_df[,c(grep("pair", names(Tversky_df)), grep("source", names(Tversky_df)))]
+
+
+write.csv(Tversky_df, here("Data/Extracted (Project) Data/Tversky_Directionality_Similarity2.csv"), row.names = FALSE)
+
+rm(Tversky_df, ML2_S2, Tversky_dat)

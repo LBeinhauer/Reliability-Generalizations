@@ -1,0 +1,23 @@
+##### Vertical position and power #####
+
+### Giessner
+
+ML2_S2 <- fread(here("Data/Original Data/ManyLabs2/ML2_S2.csv"))
+
+# data on Giessner-experiments = is on slate 2
+Giessner_dat <- data.frame(item1 = ML2_S2$geis.dv_1,
+                           item2 = ML2_S2$geis.dv_2,
+                           item3 = ML2_S2$geis.dv_3,
+                           item4 = ML2_S2$geis.dv_4,
+                           item5 = ML2_S2$geis.dv_5,
+                           source = ML2_S2$Source.Primary)
+
+Giessner_df <- Giessner_dat %>%
+  filter(rowSums(is.na(Giessner_dat[1:5])) < 1, !is.na(ifelse(is.na(ML2_S2$geis1.1), ifelse(is.na(ML2_S2$geis2.1), NA, 0), 1))) 
+								# data is filtered, missing data on one of 5 items or factor leads 
+                                                                #   to exclusions
+
+
+write.csv(Giessner_df, here("Data/Extracted (Project) Data/Giessner_Vertical_Position.csv"), row.names = FALSE)
+
+rm(Giessner_df, Giessner_dat, ML2_S2)

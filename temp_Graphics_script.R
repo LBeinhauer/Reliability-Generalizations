@@ -1,0 +1,329 @@
+
+
+
+
+library(gridExtra)
+
+
+my_forest_plot <- function(rma.fit, rma.data, main.title = "Forest Plot", 
+                           x.lab = "Estimate", ci.lvl = .975, CI.display = FALSE){
+  
+  # Calculate lower and upper limits of confidence levels, for each replication's estimate
+  cil <- rma.fit$yi[1:length(rma.fit$yi)] - qnorm(ci.lvl)*sqrt(rma.fit$vi[1:length(rma.fit$vi)])
+  ciu <- rma.fit$yi[1:length(rma.fit$yi)] + qnorm(ci.lvl)*sqrt(rma.fit$vi[1:length(rma.fit$vi)])
+  
+  
+  
+  p <- ggplot() + # initialize ggplot
+    
+    # plot point estimates
+    geom_point(aes(x = rma.fit$yi, y = c(5:(length(rma.fit$yi)+4))), shape = 15) + 
+    
+    # vertical line at x = 0
+    # geom_vline(xintercept = 0, linetype = "dashed") +
+    
+    # add horizontal line for CI of each replication's estimate
+    geom_segment(aes(x = cil, y = c(5:(length(rma.fit$yi)+4)), xend = ciu, yend = c(5:(length(rma.fit$yi)+4)))) +
+    
+    # ggplot theme
+    theme_minimal() +
+    
+    # plot meta analytic point estimate
+    geom_point(aes(x = rma.fit$b[1], y = 1), shape = 18) +
+    
+    #add CI-line for meta-analytic point estimate
+    geom_segment(aes(x = rma.fit$b[1] - qnorm(ci.lvl)*rma.fit$se, y = 1, 
+                     xend = rma.fit$b[1] + qnorm(ci.lvl)*rma.fit$se, yend = 1)) +
+    
+    # add vertical upper & lower-limit "fence"-lines, for each replication's estimate
+    geom_segment(aes(x = cil, xend = cil, y = (c(5:(length(rma.fit$yi)+4))+.3), yend = (c(5:(length(rma.fit$yi)+4))-.3) )) +
+    geom_segment(aes(x = ciu, xend = ciu, y = (c(5:(length(rma.fit$yi)+4))+.3), yend = (c(5:(length(rma.fit$yi)+4))-.3) )) +
+    
+    # add vertical upper- & lower-limit "fence lines, for meta-analytic point estimate
+    geom_segment(aes(x = rma.fit$b[1] - qnorm(ci.lvl)*rma.fit$se, y = (1+.3), 
+                     xend = rma.fit$b[1] - qnorm(ci.lvl)*rma.fit$se, yend = (1-.3))) +
+    geom_segment(aes(x = rma.fit$b[1] + qnorm(ci.lvl)*rma.fit$se, y = (1+.3), 
+                     xend = rma.fit$b[1] + qnorm(ci.lvl)*rma.fit$se, yend = (1-.3))) +
+    
+    
+    
+    
+    # labs & titles
+    xlab(x.lab) +
+    ylab("Lab") +
+    ggtitle(main.title)
+  
+  if(CI.display){
+    p <- p + 
+      scale_y_continuous(breaks = c(1, (5:(length(rma.fit$yi)+4))), 
+                         labels = c("RE Model", unique(as.character(rma.data$source))),
+                         
+                         sec.axis = dup_axis(breaks = c(1, (5:(length(rma.fit$yi)+4))),
+                                             labels = c(paste0("[", round(rma.fit$b[1] - qnorm(ci.lvl)*rma.fit$se, 2), ";", round(rma.fit$b[1] + qnorm(ci.lvl)*rma.fit$se, 2), "]"), 
+                                                        paste0("[", round(cil, 2), ";", round(ciu, 2), "]")),
+                                             name = ""))
+    # p <- p + geom_text(aes(y = c(5:(length(rma.fit$yi)+4)), x = (max(ciu) + abs(max(ciu))*.05),
+    #               label = paste0("[", round(cil, 2), ";", round(ciu, 2), "]")))
+  }else{
+    p <- p +     # adjust labels on y-axis, to display lab-abreviations
+      scale_y_continuous(breaks = c(1, (5:(length(rma.fit$yi)+4))), labels = c("RE Model", unique(as.character(rma.data$source)))) 
+  }
+  
+  p
+}
+
+
+
+
+
+pdf(here("Graphics/ForestPlots_Alpha_test.pdf"), width = 9, height = 6)
+
+laymat <- matrix(c(1, 1, 1, 1, 2, 2, 2,
+                   1, 1, 1, 1, 2, 2, 2,
+                   1, 1, 1, 1, 2, 2, 2,
+                   1, 1, 1, 1, 3, 3, 3, 
+                   1, 1, 1, 1, 3, 3, 3), byrow = T, ncol = 7)
+
+
+lapply(seq_along(Alpha_estimates.list)[-7], FUN = function(x){
+  
+  AE <- Alpha_estimates.list[[x]]
+  AR <- Alpha_rma.list[[x]]
+  
+
+  p <- my_forest_plot(rma.data = AE, rma.fit = AR,
+                      main.title = paste0("Forest Plot - ", substr(names(data.list),
+                                                                   (regexpr("Project) Data/", names(data.list)) + 14),
+                                                                   (nchar(names(data.list))-4))[x]),
+                      x.lab = "Cronbach's Alpha", ci.lvl = .975, CI.display = TRUE)
+  
+  
+  bw_FD <- (2 * IQR(AE$Reliability))/length(AE$Reliability)^(1/3)
+  
+  h <- ggplot(AE) +
+    geom_histogram(aes(x = Reliability), 
+                   binwidth = bw_FD,
+                   colour = "black", fill = gg_color_hue(2)[1]) +
+    labs(x = "Cronbach's Alpha", y = "Frequency")
+  
+  
+  
+  t <- textGrob(
+    paste0("Meta-Analytic Estimate: ", round(AR$b[1], 3), 
+           "   [",(round(AR$b[1] - qnorm(.975)*sqrt(AR$tau2), 2)), ";",
+           (round(AR$b[1] + qnorm(.975)*sqrt(AR$tau2), 2)), "]","\n \n", 
+           "Heterogeneity -> tau: ", round(sqrt(AR$tau2), 4), 
+           "    I^2: ", round(AR$I2, 2))
+  )
+  
+  
+  
+  grid.arrange(p, h, t, layout_matrix = laymat)
+  
+  
+  
+  
+})
+
+dev.off()
+
+
+
+
+
+
+
+pdf(here("Graphics/ForestPlots_Bonett_Alpha_test.pdf"), width = 9, height = 6)
+
+laymat <- matrix(c(1, 1, 1, 1, 2, 2, 2,
+                   1, 1, 1, 1, 2, 2, 2,
+                   1, 1, 1, 1, 2, 2, 2,
+                   1, 1, 1, 1, 3, 3, 3, 
+                   1, 1, 1, 1, 3, 3, 3), byrow = T, ncol = 7)
+
+
+lapply(seq_along(Bonett.Alpha_estimates.list[-7]), FUN = function(x){
+  
+  AE <- Bonett.Alpha_estimates.list[-7][[x]]
+  AR <- Bonett.Alpha_rma.list[[x]]
+  
+  
+  p <- my_forest_plot(rma.data = AE, rma.fit = AR,
+                      main.title = paste0("Forest Plot - ", substr(names(data.list),
+                                                                   (regexpr("Project) Data/", names(data.list)) + 14),
+                                                                   (nchar(names(data.list))-4))[x]),
+                      x.lab = "Bonett ln(1 - Alpha)", ci.lvl = .975, CI.display = TRUE)
+  
+  
+  bw_FD <- (2 * IQR(AE$Reliability))/length(AE$Reliability)^(1/3)
+  
+  h <- ggplot(AE) +
+    geom_histogram(aes(x = Reliability), 
+                   binwidth = bw_FD,
+                   colour = "black", fill = gg_color_hue(2)[2]) +
+    labs(x = "Bonett ln(1 - Alpha)", y = "Frequency")
+  
+  
+  
+  t <- textGrob(
+    paste0("Meta-Analytic Estimate: ", round(AR$b[1], 3), 
+           "   [",(round(AR$b[1] - qnorm(.975)*sqrt(AR$tau2), 2)), ";",
+           (round(AR$b[1] + qnorm(.975)*sqrt(AR$tau2), 2)), "]","\n \n", 
+           "Heterogeneity -> tau: ", round(sqrt(AR$tau2), 4), 
+           "    I^2: ", round(AR$I2, 2))
+  )
+  
+  
+  
+  grid.arrange(p, h, t, layout_matrix = laymat)
+  
+  
+  
+  
+})
+
+dev.off()
+
+
+
+
+
+
+
+
+
+
+
+
+
+pdf(here("Graphics/ForestPlots_Back-Transformed_Bonett_Alpha_test.pdf"), width = 9, height = 6)
+
+laymat <- matrix(c(1, 1, 1, 1, 2, 2, 2,
+                   1, 1, 1, 1, 2, 2, 2,
+                   1, 1, 1, 1, 2, 2, 2,
+                   1, 1, 1, 1, 3, 3, 3, 
+                   1, 1, 1, 1, 3, 3, 3), byrow = T, ncol = 7)
+
+
+lapply(seq_along(Bonett.Alpha_estimates.list[-7]), FUN = function(x){
+  
+  AEB <- Bonett.Alpha_estimates.list[-7][[x]]
+  AE <- data.frame(Reliability = 1-exp(AEB$Reliability),
+                   StandardError = 1-exp(AEB$StandardError),
+                   source = AEB$source)
+  AR <- Bonett.Alpha_rma.list[[x]]
+  ARB <- AR 
+  ARB$yi <- 1-exp(ARB$yi)
+  ARB$vi <- 1-exp(ARB$vi)
+  ARB$se <- 1-exp(ARB$se)
+  ARB$b <- 1-exp(ARB$b)
+  
+  
+  p <- my_forest_plot(rma.data = AE, rma.fit = ARB,
+                      main.title = paste0("Forest Plot - ", substr(names(data.list),
+                                                                   (regexpr("Project) Data/", names(data.list)) + 14),
+                                                                   (nchar(names(data.list))-4))[x]),
+                      x.lab = "BTb Cronbach's Alpha", ci.lvl = .975, CI.display = TRUE)
+  
+  
+  bw_FD <- (2 * IQR(AE$Reliability))/length(AE$Reliability)^(1/3)
+  
+  h <- ggplot(AE) +
+    geom_histogram(aes(x = Reliability), 
+                   binwidth = bw_FD,
+                   colour = "black", fill = "orange") +
+    labs(x = "BTb Cronbach's Alpha", y = "Frequency")
+  
+  
+  
+  t <- textGrob(
+    paste0("Meta-Analytic Estimate: ", round(1-exp(AR$b[1]), 3), 
+           "   [",(round(1-exp(AR$b[1] - qnorm(.975)*sqrt(AR$tau2)), 2)), ";",
+           (round(1-exp(AR$b[1] + qnorm(.975)*sqrt(AR$tau2)), 2)), "]","\n \n", 
+           "Heterogeneity -> tau: ", round(1-exp(sqrt(AR$tau2)), 4), 
+           "    I^2: ", round(AR$I2, 2))
+  )
+  
+  
+  
+  grid.arrange(p, h, t, layout_matrix = laymat)
+  
+  
+  
+  
+})
+
+dev.off()
+
+
+
+
+
+alpha_tau <- sapply(Alpha_rma.list, FUN = function(x){
+  sqrt(x$tau2)
+})
+
+
+alpha_I2 <- sapply(Alpha_rma.list, FUN = function(x){
+  x$I2
+})
+
+
+
+B.alpha_tau <- sapply(Bonett.Alpha_rma.list, FUN = function(x){
+  sqrt(x$tau2)
+})
+
+B.alpha_I2 <- sapply(Bonett.Alpha_rma.list, FUN = function(x){
+  x$I2
+})
+
+
+violin_df <- data.frame(tau = c(alpha_tau[-7], B.alpha_tau),
+                        I2 = c(alpha_I2[-7], B.alpha_I2),
+                        stat = as.factor(c(rep(1, length(alpha_tau[-7])), rep(2, length(alpha_tau[-7])))))
+
+
+
+violin_df %>%
+  ggplot() + 
+  geom_violin(aes(x = stat, y = I2)) +
+  geom_point(aes(x = stat, y = I2, colour = stat), 
+             position = position_jitter(w = 0.1, h = 0)) +
+  scale_x_discrete(labels = c("Untransformed", "Bonett-Transformed")) +
+  theme(legend.position = "none",
+        panel.background = element_rect(fill = "white"), 
+        panel.grid.major.y = element_line(colour = "grey"),
+        panel.grid.major.x = element_line(colour = "white"),
+        axis.line.x = element_line(colour = "white"),
+        axis.line.y = element_line(colour = "black"),
+        axis.ticks.x = element_line(colour = "white")) +
+  labs(x = "", y = "I2", title = "Violin Plot - I2 estimates of Cronbach's Alpha")
+
+
+
+gg_color_hue <- function(n) {
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100)[1:n]
+}
+
+violin_df[which(violin_df$stat == 1),] %>%
+  ggplot() + 
+  geom_violin(aes(x = 1, y = tau)) +
+  geom_point(aes(x = 1, y = tau), colour = gg_color_hue(2)[1], 
+             position = position_jitter(w = 0.1, h = 0)) +
+  scale_x_discrete(labels = c("Untransformed")) +
+  theme(legend.position = "none",
+        panel.background = element_rect(fill = "white"), 
+        panel.grid.major.y = element_line(colour = "grey"),
+        panel.grid.major.x = element_line(colour = "white"),
+        axis.line.x = element_line(colour = "white"),
+        axis.line.y = element_line(colour = "black"),
+        axis.ticks.x = element_line(colour = "white")) +
+  labs(x = "", y = "tau", title = "Violin Plot - tau estimates of Cronbach's Alpha")
+
+
+mean(B.alpha_I2)
+mean(alpha_I2[-7])
+mean(alpha_tau)
+summary(alpha_tau)

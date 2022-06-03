@@ -58,16 +58,4 @@ Bonett.Alpha_rma.list <- lapply(Bonett.Alpha_estimates.list[-7], FUN = function(
 
 
 
-pdf(file = "C:/Users/beinhaul/Downloads/forest_test.pdf")
-
-lapply(Alpha_rma.list, forest)
-
-dev.off()
-
-
-pdf(file = "C:/Users/beinhaul/Downloads/Bonett_forest_test.pdf")
-
-lapply(Bonett.Alpha_rma.list, forest)
-
-dev.off()
 

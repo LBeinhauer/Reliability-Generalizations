@@ -11,8 +11,9 @@ nb_df <- data.frame(EN.reasons = ml5_computed$EN.reasons,              # the oth
                     EN.hardBoth = ml5_computed$EN.hardBoth,
                     source = ml5_computed$site)
 
+nb_df <- nb_df[which(ml5_computed$time == 1 & ml5_computed$protocol == 0),]
 
-write.csv(nb_df, here("Data/Extracted (Project) Data/Shnabel_ENeed_Acceptance.csv"), row.names = FALSE)
+write.csv(nb_df, here("Data/Extracted (Project) Data/Shnabel_ENeed_Acceptance_RPP.csv"), row.names = FALSE)
 
 rm(el_df, ml5_computed)
 

@@ -1,0 +1,21 @@
+### LoBue - Visual Detection Threat Stimuli
+
+
+vd_dat <- read_spss(here("Data/Original Data/ManyLabs5/LoBue/dataset_LoBue_raw.sav")) %>%
+  filter(!is.na(protocol), !is.na(snake_experience), RT.correct <= 8.3, number_errors <8)
+
+
+#  collect DV, source and factor of properly cleaned data
+vd_df <- as.data.frame(vd_dat) %>%
+  mutate(DV = RT.correct,
+         source = Site,
+         factor = target_stimulus)
+
+# only columns of reaction time and source are of interest - remove rest
+vd_df <- vd_df[,c(grep("^stimulus", names(vd_df)), grep("source", names(vd_df)))] 
+
+vd_df <- vd_df[which(vd_dat$protocol == 1),]
+
+write.csv(vd_df, here("Data/Extracted (Project) Data/LoBue_Thread_Detection_RPP.csv"), row.names = FALSE)
+
+rm(vd_df, ML3_dat)

@@ -1,0 +1,17 @@
+### Shnabel - needs-based model of reconciliation
+
+# Public Moral Image
+
+ml5_computed <- fread(here("Data/Original Data/ManyLabs5/Shnabel/ml5_computed_dataset.csv"))
+
+nb_df <- data.frame(PMI.moral = ml5_computed$PMI.moral,
+                    PMI.guilt = ml5_computed$PMI.guilt,
+                    PMI.fair = ml5_computed$PMI.fair,
+                    source = ml5_computed$site)
+
+nb_df <- nb_df[which(ml5_computed$time == 1 & ml5_computed$protocol == 1),]
+
+write.csv(nb_df, here("Data/Extracted (Project) Data/Shnabel_Moral_Image_Rev.csv"), row.names = FALSE)
+
+rm(el_df, ml5_computed)
+

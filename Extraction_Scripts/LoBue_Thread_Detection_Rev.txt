@@ -14,7 +14,8 @@ vd_df <- as.data.frame(vd_dat) %>%
 # only columns of reaction time and source are of interest - remove rest
 vd_df <- vd_df[,c(grep("^stimulus", names(vd_df)), grep("source", names(vd_df)))] 
 
+vd_df <- vd_df[which(vd_dat$protocol == 2),]
 
-write.csv(vd_df, here("Data/Extracted (Project) Data/LoBue_Thread_Detection.csv"), row.names = FALSE)
+write.csv(vd_df, here("Data/Extracted (Project) Data/LoBue_Thread_Detection_Rev.csv"), row.names = FALSE)
 
 rm(vd_df, ML3_dat)

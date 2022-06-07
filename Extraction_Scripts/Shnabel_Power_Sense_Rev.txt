@@ -1,0 +1,20 @@
+### Shnabel - needs-based model of reconciliation
+
+# Sense of Power
+
+ml5_computed <- fread(here("Data/Original Data/ManyLabs5/Shnabel/ml5_computed_dataset.csv"))
+
+nb_df <- data.frame(SOP.talent = ml5_computed$SOP.talent,
+                    SOP.influentialPerc = ml5_computed$SOP.influentialPerc,
+                    SOP.statusSelf = ml5_computed$SOP.statusSelf,
+                    SOP.power = ml5_computed$SOP.power,
+                    SOP.influentialPart = ml5_computed$SOP.influentialPart,
+                    SOP.statusPublic = ml5_computed$SOP.statusPublic,
+                    source = ml5_computed$site)
+
+nb_df <- nb_df[which(ml5_computed$time == 1 & ml5_computed$protocol == 1),]
+
+write.csv(nb_df, here("Data/Extracted (Project) Data/Shnabel_Power_Sense_Rev.csv"), row.names = FALSE)
+
+rm(el_df, ml5_computed)
+

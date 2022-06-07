@@ -10,14 +10,24 @@ Zhong_dat <- data.frame(item2 = ML2_S2$zhon.dv.1_2,   # items concern desirabili
                         item7 = ML2_S2$zhon.dv.1_7,
                         item8 = ML2_S2$zhon.dv.1_8,
                         item10 = ML2_S2$zhon.dv.1_10,
+                        item1 = ML2_S2$zhon.dv.1_1,
+                        item4 = ML2_S2$zhon.dv.1_4,
+                        item5 = ML2_S2$zhon.dv.1_5,
+                        item6 = ML2_S2$zhon.dv.1_6,
+                        item9 = ML2_S2$zhon.dv.1_9,
                         source = ML2_S2$Source.Primary,
                         factor1 = ifelse(!is.na(ML2_S2$nCopied.zhon1), 1, ML2_S2$nCopied.zhon2),
                         factor2 = ifelse(!is.na(ML2_S2$nCopied.zhon2), 0, ML2_S2$nCopied.zhon1)) %>%
   mutate(factor = ifelse(factor1 == 1, factor1, factor2)) %>% # constructing a group-variable
-  filter(!is.na((item2 +  item3 + item7 + item8 + item10)), !is.na(factor))   # participants with missing data on the clean, other or factor variable are excluded
+  filter(!is.na((item2 + item3 + item7 + item8 + item10)), !is.na(factor),
+         !is.na((item1 + item4 + item5 + item6 + item9)))   # participants with missing data on the clean, other or factor variable are excluded
 
 
 Zhong_df <- Zhong_dat[,-grep("^factor", names(Zhong_dat))] # columns of factors are not needed
+
+Zhong_df <- Zhong_df[,!names(Zhong_df) %in% c("item2", "item3", "item7", "item8", "item10")]
+
+
 
 write.csv(Zhong_df, here("Data/Extracted (Project) Data/Zhong_Desirability_Cleaning.csv"), row.names = FALSE)
 

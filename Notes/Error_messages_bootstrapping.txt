@@ -1,0 +1,16 @@
+Error-messages for long_test_T 
+
+ERROR:  'x' ist leer  -  Dijksterhuis_trivia  -  7 
+ERROR:  'x' ist leer  -  Tversky_Directionality_Similarity1  -  45 
+
+
+Error-messages for long_Test_E
+
+ERROR:  'x' ist leer  -  Dijksterhuis_trivia  -  7 
+
+Likely variables with missing values are  Q4.5_2 Q4.7_5  
+ERROR:  I am sorry: missing values (NAs) in the correlation matrix do not allow me to continue.
+Please drop those variables and try again.  -  Finkel_Impression_Management  -  9 
+ERROR:  dim(X) muss positive Länge haben  -  Nosek_Explicit_Art  -  30 
+ERROR:  'x' ist leer  -  Tversky_Directionality_Similarity1  -  45 
+ERROR:  ungültiger 'type' (complex) des Argumentes  -  Zhong_Desirability_Cleaning  -  47 

@@ -57,5 +57,6 @@ Bonett.Alpha_rma.list <- lapply(Bonett.Alpha_estimates.list[-7], FUN = function(
 })
 
 
-
+saveRDS(Alpha_rma.list, file = here("Data/Shiny Data/Alpha_rma.list.RData"))
+saveRDS(Bonett.Alpha_rma.list, file = here("Data/Shiny Data/Bonett.Alpha_rma.list.RData"))
 

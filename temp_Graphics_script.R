@@ -1,10 +1,37 @@
+### Reliability Generalization - temp graphics script ###
+
+## 10/06/2022
 
 
 
 
-library(gridExtra)
-library(grid)
+###################################################################################################
+# This script is used purely for data visualizations. It is a temporary file, that will likely be #
+#  deleted in the future
+###################################################################################################
 
+
+# library loading and installing as necessary
+
+packages <- c("tidyverse", "here", "metafor", "grid", "gridExtra", "svglite")
+
+# check, whether library already installed or not - install and load as needed:
+apply(as.matrix(packages), MARGIN = 1, FUN = function(x) {
+  
+  pkg_avail <- nzchar(system.file(package = x))   # check if library is installed on system
+  
+  if(pkg_avail){
+    require(x, character.only = TRUE)             # load the library, if already installed
+    
+  }else{
+    install.packages(x)                           # install the library, if missing
+    require(x, character.only = TRUE)             # load after installation
+  }
+})
+
+
+
+source(here("RG_function-library.R"))
 
 
 
@@ -242,66 +269,88 @@ violin_df <- data.frame(tau = c(alpha_tau[-7], B.alpha_tau),
 
 
 
-violin_df %>%
+violin_I2 <- violin_df %>%
   ggplot() + 
-  geom_violin(aes(x = stat, y = I2)) +
-  geom_boxplot(aes(x = stat, y = I2), width = .1) +
+  geom_violin(aes(x = stat, y = I2), fill = "transparent") +
+  geom_boxplot(aes(x = stat, y = I2), width = .1, fill = "transparent") +
   geom_point(aes(x = stat, y = I2, colour = stat, shape = sig), 
              position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7) +
   scale_x_discrete(labels = c("Untransformed", "Bonett-Transformed")) +
   scale_shape_manual(values = c(21, 16)) +
   theme(legend.position = "none",
-        panel.background = element_rect(fill = "white"), 
+        panel.background = element_rect(fill = "transparent",
+                                        colour = NA_character_), 
         panel.grid.major.y = element_line(colour = "grey"),
-        panel.grid.major.x = element_line(colour = "white"),
-        axis.line.x = element_line(colour = "white"),
+        panel.grid.major.x = element_line(colour = "transparent"),
+        axis.line.x = element_line(colour = "transparent"),
         axis.line.y = element_line(colour = "black"),
-        axis.ticks.x = element_line(colour = "white")) +
+        axis.ticks.x = element_line(colour = "transparent"),
+        plot.background = element_rect(fill = "transparent", colour = NA)) +
   labs(x = "", y = "I2", title = "Violin Plot - I2 estimates of Cronbach's Alpha")
 
+ggsave(
+  plot = violin_I2,
+  filename = here("Graphics/temp_ViolinPlot_I2_Alpha.svg"),
+  bg = "transparent",
+  width = 6,
+  height = 4,
+  units = "in"
+)
 
 
 
 
 v1 <- violin_df[which(violin_df$stat == 1),] %>%
   ggplot() + 
-  geom_violin(aes(x = 0, y = tau)) +
-  geom_boxplot(aes(y = tau), width = .1) +
+  geom_violin(aes(x = 0, y = tau), fill = "transparent") +
+  geom_boxplot(aes(y = tau), width = .1, fill = "transparent") +
   geom_point(aes(x = 0, y = tau, shape = sig), colour = gg_color_hue(2)[1], 
              position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7) +
   scale_x_discrete(labels = c("Untransformed")) +
   scale_shape_manual(values = c(21, 16)) +
   theme(legend.position = "none",
-        panel.background = element_rect(fill = "white"), 
+        panel.background = element_rect(fill = "transparent",
+                                        colour = NA_character_), 
         panel.grid.major.y = element_line(colour = "grey"),
-        panel.grid.major.x = element_line(colour = "white"),
-        axis.line.x = element_line(colour = "white"),
+        panel.grid.major.x = element_line(colour = "transparent"),
+        axis.line.x = element_line(colour = "transparent"),
         axis.line.y = element_line(colour = "black"),
-        axis.ticks.x = element_line(colour = "white")) +
+        axis.ticks.x = element_line(colour = "transparent"),
+        plot.background = element_rect(fill = "transparent", colour = NA)) +
   labs(x = "", y = "tau") +
   scale_x_continuous(breaks = 0, labels = "Untransformed")
 
 v2 <- violin_df[which(violin_df$stat == 2),] %>%
   ggplot() + 
-  geom_violin(aes(x = 0, y = tau)) +
-  geom_boxplot(aes(y = tau), width = .1) +
+  geom_violin(aes(x = 0, y = tau), fill = "transparent") +
+  geom_boxplot(aes(y = tau), width = .1, fill = "transparent") +
   geom_point(aes(x = 0, y = tau, shape = sig), colour = gg_color_hue(2)[2], 
              position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7) +
   scale_x_discrete(labels = c("Bonett-transformed")) +
   scale_shape_manual(values = c(21, 16)) +
   theme(legend.position = "none",
-        panel.background = element_rect(fill = "white"), 
+        panel.background = element_rect(fill = "transparent",
+                                        colour = NA_character_), 
         panel.grid.major.y = element_line(colour = "grey"),
-        panel.grid.major.x = element_line(colour = "white"),
-        axis.line.x = element_line(colour = "white"),
+        panel.grid.major.x = element_line(colour = "transparent"),
+        axis.line.x = element_line(colour = "transparent"),
         axis.line.y = element_line(colour = "black"),
-        axis.ticks.x = element_line(colour = "white")) +
+        axis.ticks.x = element_line(colour = "transparent"),
+        plot.background = element_rect(fill = "transparent", colour = NA)) +
   labs(x = "", y = "tau") +
   scale_x_continuous(breaks = 0, labels = "Bonett-Transformed")
 
 
-gridExtra::grid.arrange(v1, v2, ncol = 2, top = "Violin Plot - tau estimates for Cronbach's Alpha")
+violin_tau <- gridExtra::grid.arrange(v1, v2, ncol = 2, top = "Violin Plot - tau estimates for Cronbach's Alpha")
 
+ggsave(
+  plot = violin_tau,
+  filename = here("Graphics/temp_ViolinPlot_tau_Alpha.svg"),
+  bg = "transparent",
+  width = 6,
+  height = 4,
+  units = "in"
+)
 
 mean(B.alpha_I2)
 mean(alpha_I2[-7])

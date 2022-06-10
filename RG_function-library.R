@@ -215,11 +215,16 @@ my_forest_plot <- function(rma.fit, rma.data, main.title = "Forest Plot",
   ciu <- rma.fit$yi[1:length(rma.fit$yi)] + qnorm(ci.lvl)*sqrt(rma.fit$vi[1:length(rma.fit$vi)])
   
   
+  # weights <- 1/sqrt(rma.fit$vi+rma.fit$tau2)
+  # weights.scaled <- weights/mean(weights)
+  # weights.rescaled <- weights.scaled/mean(weights.scaled)
   
   p <- ggplot() + # initialize ggplot
     
     # plot point estimates
-    geom_point(aes(x = rma.fit$yi, y = c(5:(length(rma.fit$yi)+4))), shape = 15) + 
+    geom_point(aes(x = rma.fit$yi, y = c(5:(length(rma.fit$yi)+4))
+    #                , size = weights.rescaled
+                   ), shape = 15) + 
     
     # vertical line at x = 0
     # geom_vline(xintercept = 0, linetype = "dashed") +
@@ -272,4 +277,10 @@ my_forest_plot <- function(rma.fit, rma.data, main.title = "Forest Plot",
   }
   
   p
+}
+
+
+gg_color_hue <- function(n) {
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100)[1:n]
 }

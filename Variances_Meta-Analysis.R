@@ -58,7 +58,7 @@ long_test_T <- lapply(seq_along(data.list), FUN = function(x){
                                    " - ", x, "\n")))
 })
 
-save(long_test_T, file = here("Notes/bootstrapped_varT.RData"))
+saveRDS(long_test_T, file = here("Notes/bootstrapped_varT.RData"))
 
 long_test_E <- lapply(seq_along(data.list), FUN = function(x){
   tryCatch(apply_Bootstrap_SE_Project.specific(data.list[[x]], var.component = "ERROR"),
@@ -68,6 +68,8 @@ long_test_E <- lapply(seq_along(data.list), FUN = function(x){
                                           (nchar(names(data.list))-4))[x], 
                                    " - ", x, "\n")))
 })
+
+saveRDS(long_test_E, file = here("Notes/bootstrapped_varT.RData"))
 
 
 
@@ -87,6 +89,10 @@ varT_rma.list <- lapply(seq_along(long_test_T), FUN = function(x){
 })
 
 
+saveRDS(varT_rma.list, file = here("Notes/bootstrapped_varT_rma.RData"))
+
+
+
 varE_rma.list <- lapply(seq_along(long_test_E), FUN = function(x){
   tryCatch(metafor::rma(measure = "GEN", method = "REML", 
                         yi = long_test_E[[x]]$boot.mean, 
@@ -98,6 +104,9 @@ varE_rma.list <- lapply(seq_along(long_test_E), FUN = function(x){
                                    " - ", x, "\n")))
   
 })
+
+
+saveRDS(varE_rma.list, file = here("Notes/bootstrapped_varE_rma.RData"))
 
 
 

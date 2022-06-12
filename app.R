@@ -9,7 +9,7 @@
 
 # library loading and installing as necessary
 # relevant R packages
-packages <- c("metafor", "tidyverse", "here", "data.table", "lavaan", "gridExtra", "shiny")
+packages <- c("metafor", "tidyverse", "here", "data.table", "lavaan", "gridExtra", "shiny", "grid")
 
 # check, whether library already installed or not - install and load as needed:
 apply(as.matrix(packages), MARGIN = 1, FUN = function(x) {
@@ -47,9 +47,9 @@ proj.names <- substr(names(data.list),
                      (regexpr("Project) Data/", names(data.list)) + 14),
                      (nchar(names(data.list))-4))
 
-varT_rma.list <- readRDS(file = here("Notes/bootstrapped_varT_rma.RData"))
+varT_rma.list <- readRDS(file = here("Notes/bootstrapped_varT_rma.RData"))[-7]
 
-varE_rma.list <- readRDS(file = here("Notes/bootstrapped_varE_rma.RData"))
+varE_rma.list <- readRDS(file = here("Notes/bootstrapped_varE_rma.RData"))[-7]
 
 
 
@@ -126,7 +126,7 @@ ui <- navbarPage(
         
         mainPanel(
             h4("Random Effects Meta-Analytic Models"),
-            verbatimTextOutput(outputId = "REMA")
+            plotOutput(outputId = "REMA")
         )
     ),
     
@@ -158,7 +158,16 @@ ui <- navbarPage(
         sidebarPanel(
             selectInput(inputId = "ScaleVD",
                         label = "Scale of Interest",
-                        choices = proj.names)
+                        choices = proj.names),
+            
+            checkboxInput(inputId = "CI.boolVD", 
+                          label = "Display Confidence-Interval",
+                          value = FALSE)
+        ),
+        
+        mainPanel(
+            h4("Forest Plots - Variance Decomposition"),
+            plotOutput(outputId = "VDforsplot")
         )
     )
 )
@@ -213,8 +222,9 @@ server <- function(input, output) {
     })
     
     
-    output$REMA <- renderText({
-        dl.index <- which(proj.names %>% input$ScaleHG)
+    output$REMA <- renderPlot({
+        
+        dl.index <- which(proj.names %in% input$ScaleRMA)
         
         if(input$RelMeasRMA == "Cronbach's Alpha"){
             data <- Alpha_rma.list[[dl.index]]
@@ -224,7 +234,19 @@ server <- function(input, output) {
         }
         
         
-        data
+        t1 <- textGrob(paste(input$ScaleRMA, " - ", input$RealMeasRMA, "\n \n",
+                             "Meta-Analytic Estimate: ", round(data$b[1], 3), "\n",
+                             "Heterogeneity - ", "\n",
+                             "tau: ", round(sqrt(data$tau2), 3), "\n",
+                             "I2: ", round(data$I2, 2), "\n",
+                             "Q(df = ", data$k-1 ,") = ", round(data$QE), ", ", 
+                             if(data$QEp < .0001){"<.0001"}else{round(data$QEp, 4)},
+                             if(data$QEp < .05){" *"}else{""}, "\n" ,
+                             "Prediction Interval: [", round(data$b[1] - 1.96*(sqrt(data$tau2 + data$se^2)), 2), " ; ",
+                             round(data$b[1] + 1.96*(sqrt(data$tau2 + data$se^2)), 2), "]")
+                       )
+        
+        grid.arrange(t1)
         
         
         
@@ -369,9 +391,64 @@ server <- function(input, output) {
         }
         
         vplot
-    }
+    })
+    
+    output$VDforsplot <- renderPlot({
         
-    )
+        laymat <- matrix(c(1, 1, 1, 1, 1, 3, 3,
+                           1, 1, 1, 1, 1, 3, 3,
+                           1, 1, 1, 1, 1, 3, 3,
+                           1, 1, 1, 1, 1, 3, 3,
+                           2, 2, 2, 2, 2, 4, 4, 
+                           2, 2, 2, 2, 2, 4, 4,
+                           2, 2, 2, 2, 2, 4, 4,
+                           2, 2, 2, 2, 2, 4, 4), byrow = T, ncol = 7)
+        
+        dl.index <- which(proj.names %in% input$ScaleVD)
+        
+        
+        dl <- data.list[[dl.index]]
+        vT <- varT_rma.list[[dl.index]]
+        
+        vE <- varE_rma.list[[dl.index]]
+        
+        
+        pT <- my_forest_plot(rma.fit = vT, rma.data = dl,
+                             main.title = paste0("Forest Plot - ", input$ScaleVD),
+                             x.lab = "True Variance (estimated)", ci.lvl = .975, CI.display = input$CI.boolVD)
+        
+        pE <- my_forest_plot(rma.fit = vE, rma.data = dl,
+                             main.title = paste0("Forest Plot - ", input$ScaleVD),
+                             x.lab = "Error Variance (estimated)", ci.lvl = .975, CI.display = input$CI.boolVD)
+        
+        tT <- textGrob(
+            paste0("MA-Est.: ", round(vT$b[1], 3), 
+                   "   [",(round(vT$b[1] - qnorm(.975)*sqrt(vT$tau2), 2)), ";",
+                   (round(vT$b[1] + qnorm(.975)*sqrt(vT$tau2), 2)), "]","\n \n", 
+                   "tau: ", round(sqrt(vT$tau2), 4), 
+                   "    I2: ", round(vT$I2, 2), "\n \n",
+                   "p(QE) = ", if(vT$QEp < .0001){"<.0001"}else{round(vT$QEp, 4)},
+                   if(vT$QEp < .05){" *"}else{""})
+        )
+        
+        tE <- textGrob(
+            paste0("MA-Est.: ", round(vE$b[1], 3), 
+                   "   [",(round(vE$b[1] - qnorm(.975)*sqrt(vE$tau2), 2)), ";",
+                   (round(vE$b[1] + qnorm(.975)*sqrt(vE$tau2), 2)), "]","\n \n", 
+                   "tau: ", round(sqrt(vE$tau2), 4), 
+                   "    I2: ", round(vE$I2, 2), "\n \n",
+                   "p(QE) = ", if(vE$QEp < .0001){"<.0001"}else{round(vE$QEp, 4)},
+                   if(vE$QEp < .05){" *"}else{""})
+        )
+        
+        
+        VDforsplot <- grid.arrange(pT, pE, tT, tE, layout_matrix = laymat)
+    
+    
+        
+        VDforsplot
+        
+    })
     
     
     

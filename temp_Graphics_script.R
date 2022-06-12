@@ -42,10 +42,34 @@ path_data <- list.files(here("Data/Extracted (Project) Data"), full.names = TRUE
 data.list <- sapply(path_data, read.csv)
 
 
+Alpha_rma.list <- readRDS(file = here("Data/Shiny Data/Alpha_rma.list.RData"))
+Bonett.Alpha_rma.list <- readRDS(file = here("Data/Shiny Data/Bonett.Alpha_rma.list.RData"))
+
+Reliability_estimates_paths <- list.files(here("Data/Reliability Estimates"), full.names =  TRUE)
+
+Alpha_estimates.list <- Reliability_estimates_paths[grep("_Alpha.csv$", Reliability_estimates_paths)][-7] %>%
+  lapply(., read.csv)
+
+Bonett.Alpha_estimates.list <- Reliability_estimates_paths[grep("_Bonett-Alpha.csv$", Reliability_estimates_paths)][-7] %>%
+  lapply(., read.csv)
+
+
 gg_color_hue <- function(n) {
   hues = seq(15, 375, length = n + 1)
   hcl(h = hues, l = 65, c = 100)[1:n]
 }
+
+
+
+
+
+#################################################################
+# Generating PDF - Forest Plot, Histogram, Text of Meta-Analyis #
+#################################################################
+
+#######
+# Cronbach's Alpha Untransformed
+######
 
 
 pdf(here("Graphics/ForestPlots_Alpha_test.pdf"), width = 9, height = 6)
@@ -102,7 +126,9 @@ dev.off()
 
 
 
-
+######
+# Cronbach's Alpha Bonett-Transformed
+######
 
 
 pdf(here("Graphics/ForestPlots_Bonett_Alpha_test.pdf"), width = 9, height = 6)
@@ -164,8 +190,13 @@ dev.off()
 
 
 
+######
+# Cronbach's Alpha Back-Transformed
+######
 
 
+
+# DOES NOT WORK!
 
 
 pdf(here("Graphics/ForestPlots_Back-Transformed_Bonett_Alpha_test.pdf"), width = 9, height = 6)
@@ -231,6 +262,13 @@ dev.off()
 
 
 
+
+
+###################################################################
+# Collecting estimates, tau, I2, sig. for each scale respectively #
+###################################################################
+
+
 alpha_tau <- sapply(Alpha_rma.list, FUN = function(x){
   sqrt(x$tau2)
 })
@@ -242,6 +280,10 @@ alpha_I2 <- sapply(Alpha_rma.list, FUN = function(x){
 
 alpha_het.sig <- sapply(Alpha_rma.list, FUN = function(x){
   x$QEp <= .05
+})
+
+alpha_est <- sapply(Alpha_rma.list, FUN = function(x){
+  x$b[1]
 })
 
 sum(!alpha_het.sig, na.rm = T)
@@ -260,12 +302,24 @@ B.alpha_het.sig <- sapply(Bonett.Alpha_rma.list, FUN = function(x){
   x$QEp <= .05
 })
 
+B.alpha_est <- sapply(Bonett.Alpha_rma.list, FUN = function(x){
+  x$b[1]
+})
+
 sum(!B.alpha_het.sig, na.rm = T)
 
 violin_df <- data.frame(tau = c(alpha_tau[-7], B.alpha_tau),
                         I2 = c(alpha_I2[-7], B.alpha_I2),
                         sig = c(alpha_het.sig[-7], B.alpha_het.sig),
-                        stat = as.factor(c(rep(1, length(alpha_tau[-7])), rep(2, length(alpha_tau[-7])))))
+                        stat = as.factor(c(rep(1, length(alpha_tau[-7])), rep(2, length(alpha_tau[-7])))),
+                        est = c(alpha_est[-7], B.alpha_est))
+
+
+
+
+###########################################
+# Violin Plots for I2 and tau over scales #
+###########################################
 
 
 
@@ -362,6 +416,158 @@ summary(alpha_tau)
 
 
 
+########################################################
+# Violin Plots for meta-analytic estimates over scales #
+########################################################
+
+
+
+v3 <- violin_df[which(violin_df$stat == 1),] %>%
+  ggplot() + 
+  geom_violin(aes(x = 0, y = est), fill = "transparent") +
+  geom_boxplot(aes(y = est), width = .1, fill = "transparent") +
+  geom_point(aes(x = 0, y = est), colour = gg_color_hue(2)[1], 
+             position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7) +
+  scale_x_discrete(labels = c("Untransformed")) +
+  theme(legend.position = "none",
+        panel.background = element_rect(fill = "transparent",
+                                        colour = NA_character_), 
+        panel.grid.major.y = element_line(colour = "grey"),
+        panel.grid.major.x = element_line(colour = "transparent"),
+        axis.line.x = element_line(colour = "transparent"),
+        axis.line.y = element_line(colour = "black"),
+        axis.ticks.x = element_line(colour = "transparent"),
+        plot.background = element_rect(fill = "transparent", colour = NA)) +
+  labs(x = "", y = "") +
+  scale_x_continuous(breaks = 0, labels = "Untransformed")
+
+v4 <- violin_df[which(violin_df$stat == 2),] %>%
+  ggplot() + 
+  geom_violin(aes(x = 0, y = est), fill = "transparent") +
+  geom_boxplot(aes(y = est), width = .1, fill = "transparent") +
+  geom_point(aes(x = 0, y = est), colour = gg_color_hue(2)[2], 
+             position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7) +
+  scale_x_discrete(labels = c("Bonett-transformed")) +
+  theme(legend.position = "none",
+        panel.background = element_rect(fill = "transparent",
+                                        colour = NA_character_), 
+        panel.grid.major.y = element_line(colour = "grey"),
+        panel.grid.major.x = element_line(colour = "transparent"),
+        axis.line.x = element_line(colour = "transparent"),
+        axis.line.y = element_line(colour = "black"),
+        axis.ticks.x = element_line(colour = "transparent"),
+        plot.background = element_rect(fill = "transparent", colour = NA)) +
+  labs(x = "", y = "") +
+  scale_x_continuous(breaks = 0, labels = "Bonett-Transformed")
+
+
+violin_estimates <- gridExtra::grid.arrange(v3, v4, ncol = 2, top = "Violin Plot - Reliability Estimates")
+
+
+
+
+
+
+
+
+
+
+
+####################################################################
+# Scatterplots for Reliability estimates (X) and Heterogeneity (Y) #
+####################################################################
+
+
+violin_df[which(violin_df$stat == 1),] %>%
+  ggplot(data = .) +
+  geom_point(aes(x = est, y = tau, shape = sig), colour = gg_color_hue(2)[1],
+             size = 3, alpha = .7) +
+  scale_shape_manual(values = c(21, 16)) +
+  theme(legend.position = "none",
+        panel.background = element_rect(fill = "transparent",
+                                        colour = NA_character_), 
+        panel.grid.major.y = element_line(colour = "grey"),
+        panel.grid.major.x = element_line(colour = "grey"),
+        axis.line.x = element_line(colour = "black"),
+        axis.line.y = element_line(colour = "black"),
+        axis.ticks.x = element_line(colour = "grey"),
+        axis.ticks.y = element_line(colour = "grey"),
+        plot.background = element_rect(fill = "transparent", colour = NA)) +
+  labs(x = "RMA-Est. Cronbach's Alpha", y = "Heterogeneity (tau)")
+
+
+
+violin_df[which(violin_df$stat == 1),] %>%
+  ggplot(data = .) +
+  geom_point(aes(x = est, y = I2, shape = sig), colour = gg_color_hue(2)[1],
+             size = 3, alpha = .7) +
+  scale_shape_manual(values = c(21, 16)) +
+  theme(legend.position = "none",
+        panel.background = element_rect(fill = "transparent",
+                                        colour = NA_character_), 
+        panel.grid.major.y = element_line(colour = "grey"),
+        panel.grid.major.x = element_line(colour = "grey"),
+        axis.line.x = element_line(colour = "black"),
+        axis.line.y = element_line(colour = "black"),
+        axis.ticks.x = element_line(colour = "grey"),
+        axis.ticks.y = element_line(colour = "grey"),
+        plot.background = element_rect(fill = "transparent", colour = NA)) +
+  labs(x = "RMA-Est. Cronbach's Alpha", y = "Heterogeneity (I2)")
+
+
+
+violin_df[which(violin_df$stat == 2),] %>%
+  ggplot(data = .) +
+  geom_point(aes(x = est, y = tau, shape = sig), colour = gg_color_hue(2)[2],
+             size = 3, alpha = .7) +
+  scale_shape_manual(values = c(21, 16)) +
+  theme(legend.position = "none",
+        panel.background = element_rect(fill = "transparent",
+                                        colour = NA_character_), 
+        panel.grid.major.y = element_line(colour = "grey"),
+        panel.grid.major.x = element_line(colour = "grey"),
+        axis.line.x = element_line(colour = "black"),
+        axis.line.y = element_line(colour = "black"),
+        axis.ticks.x = element_line(colour = "grey"),
+        axis.ticks.y = element_line(colour = "grey"),
+        plot.background = element_rect(fill = "transparent", colour = NA)) +
+  labs(x = "RMA-Est. Cronbach's Alpha (Bonett-Transformed)", y = "Heterogeneity (tau)")
+
+
+
+violin_df[which(violin_df$stat == 2),] %>%
+  ggplot(data = .) +
+  geom_point(aes(x = est, y = I2, shape = sig), colour = gg_color_hue(2)[2],
+             size = 3, alpha = .7) +
+  scale_shape_manual(values = c(21, 16)) +
+  theme(legend.position = "none",
+        panel.background = element_rect(fill = "transparent",
+                                        colour = NA_character_), 
+        panel.grid.major.y = element_line(colour = "grey"),
+        panel.grid.major.x = element_line(colour = "grey"),
+        axis.line.x = element_line(colour = "black"),
+        axis.line.y = element_line(colour = "black"),
+        axis.ticks.x = element_line(colour = "grey"),
+        axis.ticks.y = element_line(colour = "grey"),
+        plot.background = element_rect(fill = "transparent", colour = NA)) +
+  labs(x = "RMA-Est. Cronbach's Alpha (Bonett-Transformed)", y = "Heterogeneity (I2)")
+
+
+
+
+
+
+
+
+
+
+
+
+##############################################################################################
+# Combination of Forest Plot and Histogram for Reliability estimates, HEXACO HH specifically #
+##############################################################################################
+
+
 laymat <- matrix(c(1, 1, 1, 1, 2, 2, 2,
                    1, 1, 1, 1, 2, 2, 2,
                    1, 1, 1, 1, 2, 2, 2,
@@ -402,6 +608,7 @@ h <- ggplot(AE) +
 
 
 gridExtra::grid.arrange(p, h, layout_matrix = laymat)
+
 
 
 

@@ -234,16 +234,17 @@ server <- function(input, output) {
         }
         
         
-        t1 <- textGrob(paste(input$ScaleRMA, " - ", input$RealMeasRMA, "\n \n",
-                             "Meta-Analytic Estimate: ", round(data$b[1], 3), "\n",
-                             "Heterogeneity - ", "\n",
+        t1 <- textGrob(paste0(input$ScaleRMA, " - ", input$RelMeasRMA, "\n \n",
+                             "Meta-Analytic Estimate: ", round(data$b[1], 3), "\n \n",
+                             "Heterogeneity: ", "\n",
                              "tau: ", round(sqrt(data$tau2), 3), "\n",
                              "I2: ", round(data$I2, 2), "\n",
-                             "Q(df = ", data$k-1 ,") = ", round(data$QE), ", ", 
+                             "Q_E(df = ", data$k-1 ,") = ", round(data$QE), ", ", 
                              if(data$QEp < .0001){"<.0001"}else{round(data$QEp, 4)},
-                             if(data$QEp < .05){" *"}else{""}, "\n" ,
+                             if(data$QEp < .05){" *"}else{""}, "\n \n" ,
                              "Prediction Interval: [", round(data$b[1] - 1.96*(sqrt(data$tau2 + data$se^2)), 2), " ; ",
-                             round(data$b[1] + 1.96*(sqrt(data$tau2 + data$se^2)), 2), "]")
+                             round(data$b[1] + 1.96*(sqrt(data$tau2 + data$se^2)), 2), "]"),
+                       gp = gpar(col = "black", fontsize = 20)
                        )
         
         grid.arrange(t1)

@@ -420,7 +420,7 @@ violin_I2_lonely <- violin_df[which(violin_df$stat == 1),] %>%
   ggplot() + 
   geom_violin(aes(x = stat, y = I2), fill = "transparent") +
   geom_boxplot(aes(x = stat, y = I2), width = .1, fill = "transparent") +
-  geom_point(aes(x = stat, y = I2, shape = sig), colour =  "#f66963",
+  geom_point(aes(x = stat, y = I2, shape = sig), colour =  "#103754",
              position = position_jitter(w = 0.1, h = 0), size = 4, alpha = .7) +
   scale_x_discrete(labels = c("")) +
   scale_shape_manual(values = c(21, 16)) +
@@ -444,7 +444,7 @@ v1 <- violin_df[which(violin_df$stat == 1),] %>%
   ggplot() + 
   geom_violin(aes(x = 0, y = tau), fill = "transparent") +
   geom_boxplot(aes(y = tau), width = .1, fill = "transparent") +
-  geom_point(aes(x = 0, y = tau, shape = sig),  colour =  "#f66963",
+  geom_point(aes(x = 0, y = tau, shape = sig),  colour =  "#103754",
              position = position_jitter(w = 0.1, h = 0), size = 4, alpha = .7) +
   scale_x_discrete(labels = c("")) +
   scale_shape_manual(values = c(21, 16)) +
@@ -547,7 +547,7 @@ v3_lonely <- violin_df[which(violin_df$stat == 1),] %>%
   ggplot() + 
   geom_violin(aes(x = 0, y = est), fill = "transparent") +
   geom_boxplot(aes(y = est), width = .1, fill = "transparent") +
-  geom_point(aes(x = 0, y = est), colour = gg_color_hue(2)[1], 
+  geom_point(aes(x = 0, y = est), colour = "#103754", 
              position = position_jitter(w = 0.1, h = 0), size = 4, alpha = .7) +
   scale_x_discrete(labels = c("")) +
   theme(legend.position = "none",
@@ -791,7 +791,7 @@ bw_FD <- (2 * IQR(AE$Reliability))/length(AE$Reliability)^(1/3)
 h <- ggplot(AE) +
   geom_histogram(aes(x = Reliability), 
                  binwidth = bw_FD,
-                 colour = "black", fill = "#f66963") +
+                 colour = "black", fill = "#103754") +
   theme(panel.background = element_rect(fill = "transparent",
                                         colour = NA_character_), 
         text = element_text(size = 17),

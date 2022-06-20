@@ -36,6 +36,11 @@ source(here("RG_function-library.R"))
 
 
 
+colours <- c("#691d87", "#341d87", "#1d5987", "#1d874b", "#3b871d")
+
+
+
+
 path_data <- list.files(here("Data/Extracted (Project) Data"), full.names = TRUE)
 
 
@@ -416,12 +421,15 @@ summary(alpha_tau)
 
 # Plots without Bonett-Transformed estimates:
 
+
+
+
 violin_I2_lonely <- violin_df[which(violin_df$stat == 1),] %>%
   ggplot() + 
   geom_violin(aes(x = stat, y = I2), fill = "transparent") +
   geom_boxplot(aes(x = stat, y = I2), width = .1, fill = "transparent") +
-  geom_point(aes(x = stat, y = I2, shape = sig), colour =  "#103754",
-             position = position_jitter(w = 0.1, h = 0), size = 4, alpha = .7) +
+  geom_point(aes(x = stat, y = I2, shape = sig), colour =  colours[3],
+             position = position_jitter(w = 0.25, h = 0), size = 4, alpha = .7) +
   scale_x_discrete(labels = c("")) +
   scale_shape_manual(values = c(21, 16)) +
   theme(legend.position = "none",
@@ -444,8 +452,8 @@ v1 <- violin_df[which(violin_df$stat == 1),] %>%
   ggplot() + 
   geom_violin(aes(x = 0, y = tau), fill = "transparent") +
   geom_boxplot(aes(y = tau), width = .1, fill = "transparent") +
-  geom_point(aes(x = 0, y = tau, shape = sig),  colour =  "#103754",
-             position = position_jitter(w = 0.1, h = 0), size = 4, alpha = .7) +
+  geom_point(aes(x = 0, y = tau, shape = sig),  colour =  colours[3],
+             position = position_jitter(w = 0.25, h = 0), size = 4, alpha = .7) +
   scale_x_discrete(labels = c("")) +
   scale_shape_manual(values = c(21, 16)) +
   theme(legend.position = "none",
@@ -547,8 +555,8 @@ v3_lonely <- violin_df[which(violin_df$stat == 1),] %>%
   ggplot() + 
   geom_violin(aes(x = 0, y = est), fill = "transparent") +
   geom_boxplot(aes(y = est), width = .1, fill = "transparent") +
-  geom_point(aes(x = 0, y = est), colour = "#103754", 
-             position = position_jitter(w = 0.1, h = 0), size = 4, alpha = .7) +
+  geom_point(aes(x = 0, y = est), colour = colours[3], shape = 16,
+             position = position_jitter(w = 0.25, h = 0), size = 4, alpha = .7) +
   scale_x_discrete(labels = c("")) +
   theme(legend.position = "none",
         text = element_text(size = 17),
@@ -569,7 +577,7 @@ v3_lonely <- violin_df[which(violin_df$stat == 1),] %>%
 violin_estimates_lonely <- gridExtra::grid.arrange(v3_lonely, top = textGrob("Reliability Estimates", gp=gpar(fontsize=22)))
 
 svg(here("Graphics/temp_ViolinPlots_estimates_lonely_Alpha.svg"), bg = "transparent",
-        width = 4, height = 4)
+        width = 4.5, height = 4)
 
 gridExtra::grid.arrange(v3_lonely, top = textGrob("Reliability Estimates", gp=gpar(fontsize=22)))
 
@@ -755,11 +763,12 @@ my_forest_plot <- function(rma.fit, rma.data, main.title = "Forest Plot",
 
 
 
-laymat <- matrix(c(1, 1, 1, 1, 2, 2, 2,
-                   1, 1, 1, 1, 2, 2, 2,
-                   1, 1, 1, 1, 2, 2, 2,
-                   1, 1, 1, 1, 2, 2, 2, 
-                   1, 1, 1, 1, 2, 2, 2), byrow = T, ncol = 7)
+laymat <- matrix(c(1, 1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 2, 2,
+                   1, 1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 2, 2,
+                   1, 1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 2, 2,
+                   1, 1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 2, 2,
+                   1, 1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 2, 2,
+                   1, 1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 2, 2), byrow = T, ncol = 13)
 
 
 
@@ -791,7 +800,7 @@ bw_FD <- (2 * IQR(AE$Reliability))/length(AE$Reliability)^(1/3)
 h <- ggplot(AE) +
   geom_histogram(aes(x = Reliability), 
                  binwidth = bw_FD,
-                 colour = "black", fill = "#103754") +
+                 colour = "black", fill = colours[3]) +
   theme(panel.background = element_rect(fill = "transparent",
                                         colour = NA_character_), 
         text = element_text(size = 17),
@@ -809,7 +818,7 @@ h <- ggplot(AE) +
 
 
 
-Forest_Histogram_HH <- gridExtra::grid.arrange(p, h, layout_matrix = laymat, 
+Forest_Histogram_HH <- gridExtra::grid.arrange(p, h, textGrob(""),  layout_matrix = laymat, 
                                                top = textGrob("Reliability Estimates - HEXACO HH", gp=gpar(fontsize=22)))
 
 
@@ -817,7 +826,7 @@ ggsave(
   plot = Forest_Histogram_HH,
   filename = here("Graphics/temp_Forest_Histogram.svg"),
   bg = "transparent",
-  width = 8.5,
+  width = 9.5,
   height = 6.5,
   units = "in"
 )

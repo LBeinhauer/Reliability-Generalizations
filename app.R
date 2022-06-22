@@ -54,6 +54,7 @@ varE_rma.list <- readRDS(file = here("Notes/bootstrapped_varE_rma.RData"))[-7]
 
 
 
+
 # Define UI for application that allows for different visualisations of reliability generalization
 #  studies
 ui <- navbarPage(
@@ -256,6 +257,8 @@ server <- function(input, output) {
     
     output$violplot <- renderPlot({
         
+        set.seed(210622)
+        
         alpha_tau <- sapply(Alpha_rma.list, FUN = function(x){
             sqrt(x$tau2)
         })
@@ -318,7 +321,7 @@ server <- function(input, output) {
                     scale_shape_manual(values = c(21, 16)) 
             }else{
                 vplot <- vplot + 
-                    geom_point(aes(x = stat, y = I2, colour = stat), 
+                    geom_point(aes(x = stat, y = I2, colour = stat), shape = 16,
                                position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7)
             }
             

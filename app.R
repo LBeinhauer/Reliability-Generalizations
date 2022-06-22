@@ -539,9 +539,9 @@ server <- function(input, output) {
             x$b[1]
         })
         
-        B.alpha_est <- sapply(Bonett.Alpha_rma.list, FUN = function(x){
+        B.alpha_est <- 1 - exp(sapply(Bonett.Alpha_rma.list, FUN = function(x){
             x$b[1]
-        })
+        }))
         
         
         violin_df <- data.frame(tau = c(alpha_tau, B.alpha_tau),

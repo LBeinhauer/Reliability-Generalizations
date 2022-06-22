@@ -176,19 +176,19 @@ ui <- navbarPage(
         "Violin Plots - Comparing ad hoc and psychometrically assessed scales",
         
         sidebarPanel(
-            selectInput(inputId = "HetEst_AP",
-                        label = "Heterogeneity Estimate",
-                        choices = c("I2",
-                                    "tau")),
             
-            checkboxInput(inputId = "Sig.bool_AP",
-                          label = "Indicate Significance",
-                          value = FALSE)
+            selectInput(inputId = "Stat_AP",
+                        label = "Statistic of Interest",
+                        choices = c("Reliability estimates",
+                                    "Heterogeneity of reliability")),
+            
+            uiOutput("UI_ad_hoc")
+            
         ),
         
         mainPanel(
             h4("Violin Plots comparing ad hoc and psychometrically assessed"),
-            plotOutput(outputId = "violplotAP")
+            plotOutput(outputId = "violplotAP", height = "600px", width = "600px")
         )
     )
 )
@@ -475,8 +475,32 @@ server <- function(input, output) {
     })
     
     
+    output$UI_ad_hoc <- renderUI({
+        if(input$Stat_AP == "Reliability estimates"){
+            
+        }
+        
+        if(input$Stat_AP == "Heterogeneity of reliability"){
+            sidebarPanel(
+                selectInput(inputId = "HetEst_AP",
+                            label = "Heterogeneity Estimate",
+                            choices = c("I2",
+                                        "tau")),
+                
+                checkboxInput(inputId = "Sig.bool_AP",
+                              label = "Indicate Significance",
+                              value = FALSE),
+                
+                width = 8
+            )
+            
+            
+        }
+    })
     
     
+    
+   
     
     
     output$violplotAP <- renderPlot({
@@ -511,6 +535,14 @@ server <- function(input, output) {
             x$QEp <= .05
         })
         
+        alpha_est <- sapply(Alpha_rma.list, FUN = function(x){
+            x$b[1]
+        })
+        
+        B.alpha_est <- sapply(Bonett.Alpha_rma.list, FUN = function(x){
+            x$b[1]
+        })
+        
         
         violin_df <- data.frame(tau = c(alpha_tau, B.alpha_tau),
                                 I2 = c(alpha_I2, B.alpha_I2),
@@ -528,56 +560,102 @@ server <- function(input, output) {
         
         
         
-        if(input$HetEst_AP == "I2"){
-            
-            row.labs <- c("Untransformed", "Bonett-transformed")
-            names(row.labs) <- c("0", "1")
-            col.labs <- c("Psychometrically dev.", "as hoc constructed")
-            names(col.labs) <- c("0", "1")
-            
-            vplot <- violin_df2[which(violin_df2$tauI2 == 1),] %>%
-                ggplot(., aes(x = 0, y = estimate)) + 
-                geom_violin() +
-                geom_boxplot(width = .1) +
-                facet_grid(rows = vars(stat), cols = vars(Psychometrics), 
-                           labeller = labeller(stat = row.labs, Psychometrics = col.labs)) +
-                theme(legend.position = "none",
-                      panel.background = element_rect(fill = "transparent",
-                                                      colour = NA_character_), 
-                      panel.grid.major.y = element_line(colour = "grey"),
-                      panel.grid.major.x = element_line(colour = "transparent"),
-                      axis.line.x = element_line(colour = "transparent"),
-                      axis.line.y = element_line(colour = "black"),
-                      axis.ticks.x = element_line(colour = "transparent"),
-                      plot.background = element_rect(fill = "transparent", colour = NA),
-                      axis.text.x = element_blank()) +
-                labs(y = expression("I"^2), x = "")
+        
+        if(input$Stat_AP == "Heterogeneity of reliability"){
+            if(input$HetEst_AP == "I2"){
                 
-            
-            if(input$Sig.bool_AP){
-                vplot <- vplot + 
-                    geom_point(aes(x = 0, y = estimate, colour = stat, shape = sig), 
-                               position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7) +
-                    scale_shape_manual(values = c(21, 16)) 
-
-            }else{
-                vplot <- vplot + 
-                    geom_point(aes(x = 0, y = estimate, colour = stat), shape = 16,
-                               position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7)
+                row.labs <- c("Untransformed", "Bonett-transformed")
+                names(row.labs) <- c("0", "1")
+                col.labs <- c("as hoc constructed", "Psychometrically dev.")
+                names(col.labs) <- c("0", "1")
+                
+                vplot <- violin_df2[which(violin_df2$tauI2 == 1),] %>%
+                    ggplot(., aes(x = 0, y = estimate)) + 
+                    geom_violin() +
+                    geom_boxplot(width = .1) +
+                    facet_grid(rows = vars(stat), cols = vars(Psychometrics), 
+                               labeller = labeller(stat = row.labs, Psychometrics = col.labs)) +
+                    theme(legend.position = "none",
+                          panel.background = element_rect(fill = "transparent",
+                                                          colour = NA_character_), 
+                          panel.grid.major.y = element_line(colour = "grey"),
+                          panel.grid.major.x = element_line(colour = "transparent"),
+                          axis.line.x = element_line(colour = "transparent"),
+                          axis.line.y = element_line(colour = "black"),
+                          axis.ticks.x = element_line(colour = "transparent"),
+                          plot.background = element_rect(fill = "transparent", colour = NA),
+                          axis.text.x = element_blank()) +
+                    labs(y = expression("I"^2), x = "")
+                
+                
+                if(input$Sig.bool_AP){
+                    vplot <- vplot + 
+                        geom_point(aes(x = 0, y = estimate, colour = stat, shape = sig), 
+                                   position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7) +
+                        scale_shape_manual(values = c(21, 16)) 
+                    
+                }else{
+                    vplot <- vplot + 
+                        geom_point(aes(x = 0, y = estimate, colour = stat), shape = 16,
+                                   position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7)
+                }
+                
+                print(vplot) 
             }
             
-            vplot 
+            
+            if(input$HetEst_AP == "tau"){
+                row.labs <- c("Untransformed", "Bonett-transformed")
+                names(row.labs) <- c("0", "1")
+                col.labs <- c("as hoc constructed", "Psychometrically dev.")
+                names(col.labs) <- c("0", "1")
+                
+                vplot <- violin_df2[which(violin_df2$tauI2 == 0),] %>%
+                    ggplot(., aes(x = 0, y = estimate)) + 
+                    geom_violin() +
+                    geom_boxplot(width = .1) +
+                    facet_grid(rows = vars(stat), cols = vars(Psychometrics), scales = "free", 
+                               labeller = labeller(stat = row.labs, Psychometrics = col.labs)) +
+                    theme(legend.position = "none",
+                          panel.background = element_rect(fill = "transparent",
+                                                          colour = NA_character_), 
+                          panel.grid.major.y = element_line(colour = "grey"),
+                          panel.grid.major.x = element_line(colour = "transparent"),
+                          axis.line.x = element_line(colour = "transparent"),
+                          axis.line.y = element_line(colour = "black"),
+                          axis.ticks.x = element_line(colour = "transparent"),
+                          plot.background = element_rect(fill = "transparent", colour = NA),
+                          axis.text.x = element_blank()) +
+                    labs(y = expression("tau"), x = "")
+                
+                
+                if(input$Sig.bool_AP){
+                    vplot <- vplot + 
+                        geom_point(aes(x = 0, y = estimate, colour = stat, shape = sig), 
+                                   position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7) +
+                        scale_shape_manual(values = c(21, 16)) 
+                    
+                }else{
+                    vplot <- vplot + 
+                        geom_point(aes(x = 0, y = estimate, colour = stat), shape = 16,
+                                   position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7)
+                }
+                
+                print(vplot)
+            }
+             
         }
         
-        
-        if(input$HetEst_AP == "tau"){
+        if(input$Stat_AP == "Reliability estimates"){
+            violin_df2$reliability <- rep(c(alpha_est, B.alpha_est), 2)
+            
             row.labs <- c("Untransformed", "Bonett-transformed")
             names(row.labs) <- c("0", "1")
-            col.labs <- c("Psychometrically dev.", "as hoc constructed")
+            col.labs <- c("as hoc constructed", "Psychometrically dev.")
             names(col.labs) <- c("0", "1")
             
             vplot <- violin_df2[which(violin_df2$tauI2 == 0),] %>%
-                ggplot(., aes(x = 0, y = estimate)) + 
+                ggplot(., aes(x = 0, y = reliability)) + 
                 geom_violin() +
                 geom_boxplot(width = .1) +
                 facet_grid(rows = vars(stat), cols = vars(Psychometrics), scales = "free", 
@@ -592,23 +670,18 @@ server <- function(input, output) {
                       axis.ticks.x = element_line(colour = "transparent"),
                       plot.background = element_rect(fill = "transparent", colour = NA),
                       axis.text.x = element_blank()) +
-                labs(y = expression("tau"), x = "")
+                labs(y = expression("Reliability"), x = "") +
+                geom_point(aes(x = 0, y = reliability, colour = stat),
+                           position = position_jitter(w = .1, h = 0))
             
-            
-            if(input$Sig.bool_AP){
-                vplot <- vplot + 
-                    geom_point(aes(x = 0, y = estimate, colour = stat, shape = sig), 
-                               position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7) +
-                    scale_shape_manual(values = c(21, 16)) 
-                
-            }else{
-                vplot <- vplot + 
-                    geom_point(aes(x = 0, y = estimate, colour = stat), shape = 16,
-                               position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7)
-            }
+            print(vplot)
         }
-            vplot 
+        
+        
+        
     })
+    
+    
     
     
 }

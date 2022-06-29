@@ -182,7 +182,14 @@ ui <- navbarPage(
                         choices = c("Reliability estimates",
                                     "Heterogeneity of reliability")),
             
-            uiOutput("UI_ad_hoc")
+            selectInput(inputId = "Split_AP",
+                        label = "Split by",
+                        choices = c("Psychometric vs ad hoc",
+                                    "Scale use")),
+            
+            uiOutput("UI_ad_hoc"),
+            
+            uiOutput("UI_ScaleUse")
             
         ),
         
@@ -499,6 +506,25 @@ server <- function(input, output) {
     })
     
     
+    output$UI_ScaleUse <- renderUI({
+        if(input$Split_AP == "Psychometric vs ad hoc"){
+            
+        }
+        
+        if(input$Split_AP == "Scale use"){
+            sidebarPanel(
+                selectInput(inputId = "Merge_AP",
+                            label = "Merge Auxiliary, Filler & Manip Check?",
+                            choices = c("Yes",
+                                        "No")),
+                
+                width = 8
+            )
+            
+            
+        }
+    })
+    
     
    
     
@@ -555,10 +581,27 @@ server <- function(input, output) {
                                  stat = as.factor(rep(c(rep(0, length(alpha_tau)), rep(1, length(alpha_tau))), 2)),
                                  sig = rep(c(alpha_het.sig, B.alpha_het.sig), 2),
                                  Psychometrics = as.factor(rep(scales_meta2$Psychometrics, 2)),
-                                 tauI2 = c(rep(0, length(alpha_tau)*2), rep(1, length(alpha_tau)*2)))
+                                 tauI2 = c(rep(0, length(alpha_tau)*2), rep(1, length(alpha_tau)*2)),
+                                 Use = rep(scales_meta2$Use, 2))
         
         
-        
+        if(input$Split_AP == "Psychometric vs ad hoc"){
+            violin_df2$SplitVar <- violin_df2$Psychometrics
+        }
+        if(input$Split_AP == "Scale use"){
+            if(input$Merge_AP == "No"){
+                violin_df2$SplitVar <- violin_df2$Use
+            }
+            
+            if(input$Merge_AP == "Yes"){
+                violin_df2$SplitVar <- violin_df2$Use
+                
+                violin_df2$SplitVar[violin_df2$SplitVar %in% c("IV", "MC", "Fil")] <- "other"
+                
+                violin_df2$SplitVar <- as.factor(violin_df2$SplitVar)
+            }
+            
+        }
         
         
         if(input$Stat_AP == "Heterogeneity of reliability"){
@@ -566,15 +609,35 @@ server <- function(input, output) {
                 
                 row.labs <- c("Untransformed", "Bonett-transformed")
                 names(row.labs) <- c("0", "1")
-                col.labs <- c("as hoc constructed", "Psychometrically dev.")
-                names(col.labs) <- c("0", "1")
+                
+                if(input$Split_AP == "Psychometric vs ad hoc"){
+                    col.labs <- c("ad hoc constructed", "Psychometrically dev.")
+                    names(col.labs) <- c("0", "1")
+                }
+                if(input$Split_AP == "Scale use"){
+                    
+                    if(input$Merge_AP == "No"){
+                        col.labs <- c("Dependent Variable", "Independent Variable", "Auxiliary Variable",
+                                      "Manipulation Check", "Filler")
+                        names(col.labs) <- c("DV", "IV", "Aux", "MC", "Fil")
+                    }
+                    
+                    if(input$Merge_AP == "Yes"){
+                        col.labs <- c("Dependent Variable", "Auxiliary Variable",
+                                      "Other")
+                        names(col.labs) <- c("DV", "Aux", "other")
+                    }
+                    
+                }
+                
+                
                 
                 vplot <- violin_df2[which(violin_df2$tauI2 == 1),] %>%
                     ggplot(., aes(x = 0, y = estimate)) + 
                     geom_violin() +
                     geom_boxplot(width = .1) +
-                    facet_grid(rows = vars(stat), cols = vars(Psychometrics), 
-                               labeller = labeller(stat = row.labs, Psychometrics = col.labs)) +
+                    facet_grid(rows = vars(stat), cols = vars(SplitVar), 
+                               labeller = labeller(stat = row.labs, SplitVar = col.labs)) +
                     theme(legend.position = "none",
                           panel.background = element_rect(fill = "transparent",
                                                           colour = NA_character_), 
@@ -605,17 +668,36 @@ server <- function(input, output) {
             
             
             if(input$HetEst_AP == "tau"){
+                
                 row.labs <- c("Untransformed", "Bonett-transformed")
                 names(row.labs) <- c("0", "1")
-                col.labs <- c("as hoc constructed", "Psychometrically dev.")
-                names(col.labs) <- c("0", "1")
+                
+                if(input$Split_AP == "Psychometric vs ad hoc"){
+                    col.labs <- c("ad hoc constructed", "Psychometrically dev.")
+                    names(col.labs) <- c("0", "1")
+                }
+                if(input$Split_AP == "Scale use"){
+                    
+                    if(input$Merge_AP == "No"){
+                        col.labs <- c("Dependent Variable", "Independent Variable", "Auxiliary Variable",
+                                      "Manipulation Check", "Filler")
+                        names(col.labs) <- c("DV", "IV", "Aux", "MC", "Fil")
+                    }
+                    
+                    if(input$Merge_AP == "Yes"){
+                        col.labs <- c("Dependent Variable", "Auxiliary Variable",
+                                      "Other")
+                        names(col.labs) <- c("DV", "Aux", "other")
+                    }
+                    
+                }
                 
                 vplot <- violin_df2[which(violin_df2$tauI2 == 0),] %>%
                     ggplot(., aes(x = 0, y = estimate)) + 
                     geom_violin() +
                     geom_boxplot(width = .1) +
-                    facet_grid(rows = vars(stat), cols = vars(Psychometrics), scales = "free", 
-                               labeller = labeller(stat = row.labs, Psychometrics = col.labs)) +
+                    facet_grid(rows = vars(stat), cols = vars(SplitVar), scales = "free", 
+                               labeller = labeller(stat = row.labs, SplitVar = col.labs)) +
                     theme(legend.position = "none",
                           panel.background = element_rect(fill = "transparent",
                                                           colour = NA_character_), 
@@ -651,15 +733,33 @@ server <- function(input, output) {
             
             row.labs <- c("Untransformed", "Bonett-transformed")
             names(row.labs) <- c("0", "1")
-            col.labs <- c("as hoc constructed", "Psychometrically dev.")
-            names(col.labs) <- c("0", "1")
+            
+            if(input$Split_AP == "Psychometric vs ad hoc"){
+                col.labs <- c("ad hoc constructed", "Psychometrically dev.")
+                names(col.labs) <- c("0", "1")
+            }
+            if(input$Split_AP == "Scale use"){
+                
+                if(input$Merge_AP == "No"){
+                    col.labs <- c("Dependent Variable", "Independent Variable", "Auxiliary Variable",
+                                  "Manipulation Check", "Filler")
+                    names(col.labs) <- c("DV", "IV", "Aux", "MC", "Fil")
+                }
+                
+                if(input$Merge_AP == "Yes"){
+                    col.labs <- c("Dependent Variable", "Auxiliary Variable",
+                                  "Other")
+                    names(col.labs) <- c("DV", "Aux", "other")
+                }
+                
+            }
             
             vplot <- violin_df2[which(violin_df2$tauI2 == 0),] %>%
                 ggplot(., aes(x = 0, y = reliability)) + 
                 geom_violin() +
                 geom_boxplot(width = .1) +
-                facet_grid(rows = vars(stat), cols = vars(Psychometrics), scales = "free", 
-                           labeller = labeller(stat = row.labs, Psychometrics = col.labs)) +
+                facet_grid(rows = vars(stat), cols = vars(SplitVar), scales = "free", 
+                           labeller = labeller(stat = row.labs, SplitVar = col.labs)) +
                 theme(legend.position = "none",
                       panel.background = element_rect(fill = "transparent",
                                                       colour = NA_character_), 

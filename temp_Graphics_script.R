@@ -843,7 +843,7 @@ substr(names(data.list),
 unique(substr(scales_meta$Scale, 1, regexpr(" ", scales_meta$Scale) - 1))
 length(unique(substr(scales_meta$Scale, 1, regexpr(" ", scales_meta$Scale) - 1)))
 
-scales_meta <- read.csv(here("Notes/Tutzing_Vis_Scales.csv"))
+scales_meta <- read.csv(here::here("Notes/Tutzing_Vis_Scales.csv"))
 sum(scales_meta$Psychometrics)
 
 

@@ -51,24 +51,67 @@ alpha_estimates.list <- lapply(seq_along(data.list), FUN = function(x){
 })
 
 
+
+
+
+
 omega_estimates.list <- lapply(seq_along(data.list), FUN = function(x){
-  estimate_omega(data.list[[x]], csv = TRUE, 
-                 project.title = substr(names(data.list),
-                                        (regexpr("Project) Data/", names(data.list)) + 14),
-                                        (nchar(names(data.list))-4))[x])
+  
+  tryCatch({
+    estimate_omega(data.list[[x]][which(rowSums(is.na(data.list[[x]])) <= 1),], csv = TRUE, 
+                   project.title = substr(names(data.list),
+                                          (regexpr("Project) Data/", names(data.list)) + 14),
+                                          (nchar(names(data.list))-4))[x])
+  },
+  
+  error = function(e)(cat("ERROR: ", conditionMessage(e), " - ", 
+                          substr(names(data.list), 
+                                 (regexpr("Project) Data/", names(data.list)) + 14), 
+                                 (nchar(names(data.list))-4))[x], 
+                          " - ", x, "\n"))
+  )
+  
 
 })
 
 
 Bonett.alpha_estimates.list <- lapply(seq_along(data.list), FUN = function(x){
-  estimate_Bonett_alpha(data.list[[x]], csv = TRUE, 
-                        project.title = substr(names(data.list), 
-                                               (regexpr("Project) Data/", names(data.list)) + 14), 
-                                               (nchar(names(data.list))-4))[x])
+  tryCatch({
+    estimate_Bonett_alpha(data.list[[x]], csv = TRUE, 
+                          project.title = substr(names(data.list), 
+                                                 (regexpr("Project) Data/", names(data.list)) + 14), 
+                                                 (nchar(names(data.list))-4))[x])
+  },
+  
+  error = function(e)(cat("ERROR: ", conditionMessage(e), " - ", 
+                          substr(names(data.list), 
+                                 (regexpr("Project) Data/", names(data.list)) + 14), 
+                                 (nchar(names(data.list))-4))[x], 
+                          " - ", x, "\n"))
+  
+    
+  )
+  
 })
 
 
 
 
-
+Bonett.omega_estimates.list <- lapply(seq_along(data.list), FUN = function(x){
+  tryCatch({
+    estimate_Bonett_omega(data.list[[x]][which(rowSums(is.na(data.list[[x]])) <= 1),], csv = TRUE, 
+                          project.title = substr(names(data.list), 
+                                                 (regexpr("Project) Data/", names(data.list)) + 14), 
+                                                 (nchar(names(data.list))-4))[x])
+  },
+  
+  error = function(e)(cat("ERROR: ", conditionMessage(e), " - ", 
+                          substr(names(data.list), 
+                                 (regexpr("Project) Data/", names(data.list)) + 14), 
+                                 (nchar(names(data.list))-4))[x], 
+                          " - ", x, "\n"))
+  
+  )
+  
+})
 

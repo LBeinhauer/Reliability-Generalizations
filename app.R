@@ -37,8 +37,35 @@ Reliability_estimates_paths <- list.files(here("Data/Reliability Estimates"), fu
 Alpha_estimates.list <- Reliability_estimates_paths[grep("_Alpha.csv$", Reliability_estimates_paths)][-7] %>%
     lapply(., read.csv)
 
+names(Alpha_estimates.list) <- substr(Reliability_estimates_paths[grep("_Alpha.csv$", Reliability_estimates_paths)][-7],
+                                      (regexpr("Reliability Estimates/", Reliability_estimates_paths[grep("_Alpha.csv$", Reliability_estimates_paths)][-7]) + 22),
+                                      (nchar(Reliability_estimates_paths[grep("_Alpha.csv$", Reliability_estimates_paths)][-7])-10))
+
+
+Omega_estimates.list <- Reliability_estimates_paths[grep("_Omega.csv$", Reliability_estimates_paths)] %>%
+    lapply(., read.csv)
+
+names(Omega_estimates.list) <- substr(Reliability_estimates_paths[grep("_Omega.csv$", Reliability_estimates_paths)],
+                                      (regexpr("Reliability Estimates/", Reliability_estimates_paths[grep("_Omega.csv$", Reliability_estimates_paths)]) + 22),
+                                      (nchar(Reliability_estimates_paths[grep("_Omega.csv$", Reliability_estimates_paths)])-10))
+
+
 Bonett.Alpha_estimates.list <- Reliability_estimates_paths[grep("_Bonett-Alpha.csv$", Reliability_estimates_paths)][-7] %>%
     lapply(., read.csv)
+
+names(Bonett.Alpha_estimates.list) <- substr(Reliability_estimates_paths[grep("_Bonett-Alpha.csv$", Reliability_estimates_paths)][-7],
+                                             (regexpr("Reliability Estimates/", Reliability_estimates_paths[grep("_Bonett-Alpha.csv$", Reliability_estimates_paths)][-7]) + 22),
+                                             (nchar(Reliability_estimates_paths[grep("_Bonett-Alpha.csv$", Reliability_estimates_paths)][-7])-17))
+
+
+Bonett.Omega_estimates.list <- Reliability_estimates_paths[grep("_Bonett-Omega.csv$", Reliability_estimates_paths)][-7] %>%
+    lapply(., read.csv)
+
+names(Bonett.Omega_estimates.list) <- substr(Reliability_estimates_paths[grep("_Bonett-Omega.csv$", Reliability_estimates_paths)][-7],
+                                             (regexpr("Reliability Estimates/", Reliability_estimates_paths[grep("_Bonett-Omega.csv$", Reliability_estimates_paths)][-7]) + 22),
+                                             (nchar(Reliability_estimates_paths[grep("_Bonett-Omega.csv$", Reliability_estimates_paths)][-7])-17))
+
+
 
 data.list <- list.files(here("Data/Extracted (Project) Data"), full.names = TRUE)[-7] %>%
     sapply(., read.csv)
@@ -73,7 +100,9 @@ ui <- navbarPage(
             selectInput(inputId = "RelMeasHG",
                         label = "Reliability Measure",
                         choices = c("Cronbach's Alpha",
-                                    "Bonett-transf. Alpha"))
+                                    "McDonald's Omega",
+                                    "Bonett-transf. Alpha",
+                                    "Bonett-transf. Omega"))
         ),
         
         mainPanel(
@@ -229,14 +258,19 @@ server <- function(input, output) {
     
     output$histogram <- renderPlot({
         
-        dl.index <- which(proj.names %in% input$ScaleHG)
-        
         if(input$RelMeasHG == "Cronbach's Alpha"){
-            data <- Alpha_estimates.list[[dl.index]]
+            data <- Alpha_estimates.list[[which(names(Alpha_estimates.list) %in% input$ScaleHG)]]
+        }
+        if(input$RelMeasHG == "McDonald's Omega"){
+            data <- Omega_estimates.list[[which(names(Omega_estimates.list) %in% input$ScaleHG)]]
         }
         if(input$RelMeasHG == "Bonett-transf. Alpha"){
-            data <- Bonett.Alpha_estimates.list[[dl.index]]
+            data <- Bonett.Alpha_estimates.list[[which(names(Bonett.Alpha_estimates.list) %in% input$ScaleHG)]]
         }
+        if(input$RelMeasHG == "Bonett-transf. Omega"){
+            data <- Bonett.Omega_estimates.list[[which(names(Bonett.Omega_estimates.list) %in% input$ScaleHG)]]
+        }
+        
         
         bw_FD <- (2 * IQR(data$Reliability))/length(data$Reliability)^(1/3)
         

@@ -40,23 +40,60 @@ Reliability_estimates_paths <- list.files(here("Data/Reliability Estimates"), fu
 Alpha_estimates_paths <- Reliability_estimates_paths[grep("_Alpha.csv$", Reliability_estimates_paths)]
 
 
-Alpha_estimates.list <- lapply(Alpha_estimates_paths, read.csv)
-
-Alpha_rma.list <- lapply(Alpha_estimates.list, FUN = function(x){
-  metafor::rma(measure = "GEN", method = "REML", yi = x$Reliability, sei = x$StandardError)
+Alpha_rma.list <- lapply(Alpha_estimates_paths, FUN = function(x){
+  d <- read.csv(x)
+  
+  metafor::rma(measure = "GEN", method = "REML", yi = d$Reliability, sei = d$StandardError)
 })
+
+names(Alpha_rma.list) <- substr(Alpha_estimates_paths,
+                                (regexpr("Reliability Estimates/", Alpha_estimates_paths) + 22),
+                                (nchar(Alpha_estimates_paths)-10))
+
+
+
+Omega_estimates_paths <- Reliability_estimates_paths[grep("_Omega.csv$", Reliability_estimates_paths)]
+
+Omega_rma.list <- lapply(Omega_estimates_paths, FUN = function(x){
+  d <- read.csv(x)
+  
+  metafor::rma(measure = "GEN", method = "REML", yi = d$Reliability, sei = d$StandardError)
+})
+
+names(Omega_rma.list) <- substr(Omega_estimates_paths,
+                                (regexpr("Reliability Estimates/", Omega_estimates_paths) + 22),
+                                (nchar(Omega_estimates_paths)-10))
 
 
 
 Bonett.Alpha_estimates_paths <- Reliability_estimates_paths[grep("_Bonett-Alpha.csv$", Reliability_estimates_paths)]
 
-Bonett.Alpha_estimates.list <- lapply(Bonett.Alpha_estimates_paths, read.csv)
-
-Bonett.Alpha_rma.list <- lapply(Bonett.Alpha_estimates.list[-7], FUN = function(x){
-  metafor::rma(measure = "GEN", method = "REML", yi = x$Reliability, sei = x$StandardError)
+Bonett.Alpha_rma.list <- lapply(Bonett.Alpha_estimates_paths[-7], FUN = function(x){
+  d <- read.csv(x)
+  
+  metafor::rma(measure = "GEN", method = "REML", yi = d$Reliability, sei = d$StandardError)
 })
 
+names(Bonett.Alpha_rma.list) <- substr(Bonett.Alpha_estimates_paths[-7],
+                                       (regexpr("Reliability Estimates/", Bonett.Alpha_estimates_paths[-7]) + 22),
+                                       (nchar(Bonett.Alpha_estimates_paths[-7])-17))
+
+
+
+
+Bonett.Omega_estimates_paths <- Reliability_estimates_paths[grep("_Bonett-Omega.csv$", Reliability_estimates_paths)]
+
+Bonett.Omega_rma.list <- lapply(Bonett.Omega_estimates_paths, FUN = function(x){
+  d <- read.csv(x)
+  
+  metafor::rma(measure = "GEN", method = "REML", yi = d$Reliability, sei = d$StandardError)
+})
+
+names(Bonett.Omega_rma.list) <- substr(Bonett.Omega_estimates_paths,
+                                       (regexpr("Reliability Estimates/", Bonett.Omega_estimates_paths) + 22),
+                                       (nchar(Bonett.Omega_estimates_paths)-17))
 
 saveRDS(Alpha_rma.list, file = here("Data/Shiny Data/Alpha_rma.list.RData"))
+saveRDS(Omega_rma.list, file = here("Data/Shiny Data/Omega_rma.list.RData"))
 saveRDS(Bonett.Alpha_rma.list, file = here("Data/Shiny Data/Bonett.Alpha_rma.list.RData"))
-
+saveRDS(Bonett.Omega_rma.list, file = here("Data/Shiny Data/Bonett.Omega_rma.list.RData"))

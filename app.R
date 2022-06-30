@@ -173,7 +173,7 @@ ui <- navbarPage(
     ),
     
     tabPanel(
-        "Violin Plots - Comparing ad hoc and psychometrically assessed scales",
+        "Violin Plots - Split",
         
         sidebarPanel(
             

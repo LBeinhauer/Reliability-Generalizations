@@ -443,7 +443,7 @@ server <- function(input, output) {
                     scale_shape_manual(values = c(21, 16)) 
             }else{
                 vplot <- vplot + 
-                    geom_point(aes(x = stat, y = I2, colour = stat), shape = 16,
+                    geom_point(aes(x = 1, y = I2, colour = stat), shape = 16,
                                position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7)
             }
             

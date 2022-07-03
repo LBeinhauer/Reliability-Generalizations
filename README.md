@@ -10,7 +10,7 @@ Running through the scripts in a specific order is comparable to a pipeline, sta
 ### The different R-scripts 
 (in order to generate heterogeneity estimates of reliability coefficients):
 
-1. [Data_Extraction.R]<Data_Extraction.R> 
+1. <Data_Extraction.R> 
 	This script extracts relevant observations from the raw data (raw data is currently NOT supplied, as contact with original authors will be sought first).
 	Specifically, this script reads the text-files in the <Extraction_Scripts> directory. These contain the code to extract and clean data for each specific scale. Runing the R-script will result in separate .csv.files for each scale in the <Extracted (Project) Data> subdirectory, within the <Data> directoy (currently not supported).
 

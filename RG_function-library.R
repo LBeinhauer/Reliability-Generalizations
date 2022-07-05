@@ -14,7 +14,7 @@
 
 # library loading and installing as necessary
 
-packages <- c("tidyverse", "here", "psych", "coefficientalpha")
+packages <- c("tidyverse", "here", "psych", "coefficientalpha", "spsUtil")
 
 # check, whether library already installed or not - install and load as needed:
 apply(as.matrix(packages), MARGIN = 1, FUN = function(x) {
@@ -41,7 +41,7 @@ estimate_alpha <- function(data, csv = FALSE, project.title = NULL){
   est <- apply(as.matrix(1:k), MARGIN = 1, FUN = function(x){
     d <- data[which(data$source == unique(data$source)[x]), -s.idx]
     
-    suppressWarnings(psych::alpha(d))
+    spsUtil::quiet(psych::alpha(d))
   })  
   
   df <- data.frame(Reliability = sapply(est, FUN = function(x){x$total$raw_alpha}),
@@ -66,7 +66,7 @@ estimate_omega <- function(data, csv = FALSE, project.title = NULL){
   est <- sapply(1:k, FUN = function(x){
     d <- data[which(data$source == unique(data$source)[x]), -s.idx]
     
-    fit <- coefficientalpha::omega(d, se = TRUE, test = FALSE, silent = TRUE)
+    fit <- spsUtil::quiet(coefficientalpha::omega(d, se = TRUE, test = FALSE, silent = TRUE))
     
     return(c(fit$omega, fit$se))
   })  
@@ -96,11 +96,16 @@ estimate_Bonett_alpha <- function(data, csv = FALSE, project.title = NULL){
   est <- apply(as.matrix(1:k), MARGIN = 1, FUN = function(x){
     d <- data[which(data$source == unique(data$source)[x]), -s.idx]
     
-    suppressWarnings(psych::alpha(d))
+    spsUtil::quiet(psych::alpha(d))
   })  
   
   Alpha <- sapply(est, FUN = function(x){x$total$raw_alpha})
-  B.Alpha <- log(1 - abs(Alpha))
+  
+  if(Alpha < 0){
+    stop("Estimate of Coefficient Alpha is negative - variance breakdown is futile")
+  }
+  
+  B.Alpha <- log(1 - Alpha)
   SE_B.Alpha <- sqrt((2 * j)/((j - 1) * (n - 2)))                
                   
   df <- data.frame(Reliability = B.Alpha,
@@ -114,6 +119,42 @@ estimate_Bonett_alpha <- function(data, csv = FALSE, project.title = NULL){
   return(df)
 }
 
+
+estimate_Bonett_omega <- function(data, csv = FALSE, project.title = NULL){
+  
+  k <- length(unique(data$source))
+  s.idx <- grep("source", names(data))
+  j <- k-1
+  n <- data %>%
+    group_by(source) %>%
+    summarise(n = n())
+  n <- n$n
+  
+  est <- apply(as.matrix(1:k), MARGIN = 1, FUN = function(x){
+    d <- data[which(data$source == unique(data$source)[x]), -s.idx]
+    
+    fit <- spsUtil::quiet(coefficientalpha::omega(d, se = TRUE, test = FALSE, silent = TRUE))
+  })  
+  
+  Omega <- sapply(est, FUN = function(x){x$omega})
+  
+  if(Omega < 0){
+    stop("Estimate of Coefficient Alpha is negative - variance breakdown is futile")
+  }
+  
+  B.Omega <- log(1 - Omega)
+  SE_B.Omega <- sqrt((2 * j)/((j - 1) * (n - 2)))                
+  
+  df <- data.frame(Reliability = B.Omega,
+                   StandardError = SE_B.Omega,
+                   source = unique(data$source))
+  
+  if(csv){
+    write.csv(df, file = here(paste0("Data/Reliability Estimates/", project.title, "_Bonett-Omega.csv")), row.names = FALSE)
+  }
+  
+  return(df)
+}
 
 
 

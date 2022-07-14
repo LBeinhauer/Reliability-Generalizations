@@ -1,0 +1,26 @@
+##### Disgust Sensitivity #####
+
+### Inbar
+
+
+ML2_S1 <- fread(here("Data/Original Data/ManyLabs2/ML2_S1.csv"))
+
+
+Inbar_dat <- data.frame(disg1.11 = ML2_S1$disg1.11 - 1,
+                        disg1.12 = ML2_S1$disg1.12 - 1,
+                        disg2.10 = (ML2_S1$disg2.10 - 1)/2,
+                        disg2.12 = (ML2_S1$disg2.12 - 1)/2,
+                        disg2.13 = (ML2_S1$disg2.13 - 1)/2,
+                        source = ML2_S1$Source.Primary) %>%
+  filter(!is.na(ifelse(is.na(ML2_S1$inba1.3), ML2_S1$inba2.3, ML2_S1$inba1.3)))
+
+ds_df <- as.data.frame(Inbar_dat)
+
+# ds_df %>%
+#   group_by(source) %>%
+#   summarise(n = n())
+
+
+write.csv(ds_df, here("Data/Extracted (Project) Data/Inbar_Disgust_Sensitity.csv"), row.names = FALSE)
+
+rm(ds_df, ML2_S1, Inbar_dat)

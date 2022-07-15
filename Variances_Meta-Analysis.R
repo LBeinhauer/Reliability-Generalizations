@@ -88,6 +88,7 @@ varT_rma.list <- lapply(seq_along(long_test_T), FUN = function(x){
   
 })
 
+names(varT_rma.list) <- names(data.list)
 
 saveRDS(varT_rma.list, file = here("Notes/bootstrapped_varT_rma.RData"))
 
@@ -105,8 +106,51 @@ varE_rma.list <- lapply(seq_along(long_test_E), FUN = function(x){
   
 })
 
+names(varE_rma.list) <- names(data.list)
 
 saveRDS(varE_rma.list, file = here("Notes/bootstrapped_varE_rma.RData"))
+
+
+
+
+# boót.function for observed variance
+bootstrap_SE_varX <- function(data, indices){
+  
+  d <- data[indices,]
+  
+  var_X <- var(rowMeans(d), na.rm = T)
+  
+  return(var_X)
+  
+}
+
+boot.estimates_varX <- lapply(seq_along(data.list), FUN = function(x){
+  data <- data.list[[x]]
+  
+  df <- apply(as.matrix(seq_along(unique(data$source))), MARGIN = 1, FUN = function(x){
+    bvar <- boot(data = data[data$source == unique(data$source)[x],-grep("source", names(data))],
+                 statistic = bootstrap_SE_varX,
+                 R = 100)
+    
+    return(data.frame(SE = sd(bvar$t), 
+                      boot.mean = mean(bvar$t)))
+  })
+  
+  df.formatted <- data.frame(SE = sapply(df, FUN = function(x){x$SE}),
+                             boot.mean = sapply(df, FUN = function(x){x$boot.mean}),
+                             source = unique(data$source))
+  
+})
+
+varX_rma.list <- lapply(seq_along(boot.estimates_varX), FUN = function(x){
+  data <- boot.estimates_varX[[x]]
+  
+  metafor::rma(data = data, method = "REML", measure = "GEN", yi = boot.mean, sei = SE)
+})
+
+names(varX_rma.list) <- names(data.list)
+
+saveRDS(varX_rma.list, file = here("Notes/bootstrapped_varX_rma.RData"))
 
 
 

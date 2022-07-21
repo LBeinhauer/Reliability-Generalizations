@@ -645,19 +645,16 @@ server <- function(input, output) {
         }))
         
         
-        violin_df <- data.frame(tau = c(alpha_tau, B.alpha_tau),
-                                I2 = c(alpha_I2, B.alpha_I2),
-                                sig = c(alpha_het.sig, B.alpha_het.sig),
-                                stat = as.factor(c(rep(1, length(alpha_tau)), rep(2, length(alpha_tau)))))
-        
-        scales_meta2 <- rbind(scales_meta, scales_meta)
+        # Inbar is not available for Bonett-estimates
+        scales_meta2 <- rbind(scales_meta, scales_meta[-grep("Inbar", scales_meta$Scale),])
         
         violin_df2 <- data.frame(estimate = c(alpha_tau, B.alpha_tau, alpha_I2, B.alpha_I2),
-                                 stat = as.factor(rep(c(rep(0, length(alpha_tau)), rep(1, length(alpha_tau))), 2)),
+                                 stat = as.factor(rep(c(rep(0, length(alpha_tau)), rep(1, length(B.alpha_tau))), 2)),
                                  sig = rep(c(alpha_het.sig, B.alpha_het.sig), 2),
                                  Psychometrics = as.factor(rep(scales_meta2$Psychometrics, 2)),
-                                 tauI2 = c(rep(0, length(alpha_tau)*2), rep(1, length(alpha_tau)*2)),
-                                 Use = rep(scales_meta2$Use, 2))
+                                 tauI2 = c(rep(0, length(alpha_tau) + length(B.alpha_tau)), rep(1, length(alpha_I2) + length(B.alpha_I2))),
+                                 Use = rep(scales_meta2$Use, 2),
+                                 scale = rep(scales_meta2$Scale, 2))
         
         
         if(input$Split_AP == "Psychometric vs ad hoc"){

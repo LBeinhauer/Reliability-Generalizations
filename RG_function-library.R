@@ -110,7 +110,7 @@ estimate_Bonett_alpha <- function(data, csv = FALSE, project.title = NULL){
   }
   
   B.Alpha <- log(1 - Alpha)
-  SE_B.Alpha <- sqrt((2 * k)/((k - 1) * (n - 2)))                
+  SE_B.Alpha <- sqrt((2 * j)/((j - 1) * (n - 2)))                
                   
   df <- data.frame(Reliability = B.Alpha,
                    StandardError = SE_B.Alpha,
@@ -147,7 +147,7 @@ estimate_Bonett_omega <- function(data, csv = FALSE, project.title = NULL){
   }
   
   B.Omega <- log(1 - Omega)
-  SE_B.Omega <- sqrt((2 * k)/((k - 1) * (n - 2)))                
+  SE_B.Omega <- sqrt((2 * j)/((j - 1) * (n - 2)))                
   
   df <- data.frame(Reliability = B.Omega,
                    StandardError = SE_B.Omega,
@@ -167,10 +167,12 @@ bootstrap_SE_varT <- function(data, indices, stat = "ALPHA"){
   d <- data[indices,]
   
   if(stat == "ALPHA"){
-    alpha_fit <- psych::alpha(d, warnings = FALSE)
+    # compute Cronbach's Alpha
+    C <- cov(d)
+    n <- dim(C)[1]
+    alpha <- (1 - sum(diag(C))/sum(C)) * (n/(n - 1))
     
-    alpha <- alpha_fit$total[1]
-    
+    # return Cronbach's Alpha as rel-object
     rel <- alpha
   }
   if(stat == "OMEGA"){
@@ -197,10 +199,12 @@ bootstrap_SE_varE <- function(data, indices, stat = "ALPHA"){
   d <- data[indices,]
   
   if(stat == "ALPHA"){
-    alpha_fit <- psych::alpha(d, warnings = FALSE)
+    # compute Cronbach's Alpha
+    C <- cov(d)
+    n <- dim(C)[1]
+    alpha <- (1 - sum(diag(C))/sum(C)) * (n/(n - 1))
     
-    alpha <- alpha_fit$total[1]
-    
+    # return Cronbach's Alpha as rel-object
     rel <- alpha
   }
   if(stat == "OMEGA"){

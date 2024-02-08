@@ -3,3 +3,4 @@ Data/
 *.DS_Store
 *.Rhistory
 old/
+.Rproj.user

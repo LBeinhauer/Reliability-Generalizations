@@ -85,9 +85,13 @@ estimate_omega <- function(data, csv = FALSE, project.title = NULL){
 
 estimate_Bonett_alpha <- function(data, csv = FALSE, project.title = NULL){
   
+  # compute nr. of groups
   k <- length(unique(data$source))
+  # identify "source"-colum
   s.idx <- grep("source", names(data))
-  j <- k-1
+  # compute nr. of items
+  j <- length(names(data[,-s.idx]))
+  # compute group-sample size
   n <- data %>%
     group_by(source) %>%
     summarise(n = n())
@@ -101,12 +105,12 @@ estimate_Bonett_alpha <- function(data, csv = FALSE, project.title = NULL){
   
   Alpha <- sapply(est, FUN = function(x){x$total$raw_alpha})
   
-  if(Alpha < 0){
+  if(sum(Alpha < 0) > 0){
     stop("Estimate of Coefficient Alpha is negative - variance breakdown is futile")
   }
   
   B.Alpha <- log(1 - Alpha)
-  SE_B.Alpha <- sqrt((2 * j)/((j - 1) * (n - 2)))                
+  SE_B.Alpha <- sqrt((2 * k)/((k - 1) * (n - 2)))                
                   
   df <- data.frame(Reliability = B.Alpha,
                    StandardError = SE_B.Alpha,
@@ -124,7 +128,7 @@ estimate_Bonett_omega <- function(data, csv = FALSE, project.title = NULL){
   
   k <- length(unique(data$source))
   s.idx <- grep("source", names(data))
-  j <- k-1
+  j <- length(names(data[,-s.idx]))
   n <- data %>%
     group_by(source) %>%
     summarise(n = n())
@@ -138,12 +142,12 @@ estimate_Bonett_omega <- function(data, csv = FALSE, project.title = NULL){
   
   Omega <- sapply(est, FUN = function(x){x$omega})
   
-  if(Omega < 0){
+  if(sum(Omega < 0) > 0){
     stop("Estimate of Coefficient Alpha is negative - variance breakdown is futile")
   }
   
   B.Omega <- log(1 - Omega)
-  SE_B.Omega <- sqrt((2 * j)/((j - 1) * (n - 2)))                
+  SE_B.Omega <- sqrt((2 * k)/((k - 1) * (n - 2)))                
   
   df <- data.frame(Reliability = B.Omega,
                    StandardError = SE_B.Omega,
@@ -236,13 +240,35 @@ apply_Bootstrap_SE_Project.specific <- function(data, var.component = c("TRUE", 
                  stat = "ALPHA",
                  R = R)
     
-    return(data.frame(SE = sd(bvar$t), 
-                      boot.mean = mean(bvar$t)))
+    d <- data[data$source == unique(data$source)[x],-grep("source", names(data))]
+    
+    D <- na.omit(d)
+    
+    C <- cov(D)
+    n <- dim(C)[1]
+    
+    alpha <- (1 - sum(diag(C))/sum(C)) * (n/(n - 1))
+    
+    varX <- var(rowMeans(D))
+    
+    if(var.component == "TRUE"){
+      var_est <- as.numeric(varX * alpha )
+    }
+    if(var.component == "ERROR"){
+      var_est <- as.numeric(varX * (1-alpha))
+    }
+    
+    
+    
+    return(data.frame(SE = sd(log(bvar$t)), 
+                      boot.mean = mean(log(bvar$t)),
+                      var.emp = log(var_est)))
   })
   )
   
   df.formatted <- data.frame(SE = sapply(df, FUN = function(x){x$SE}),
                              boot.mean = sapply(df, FUN = function(x){x$boot.mean}),
+                             var.est = sapply(df, FUN = function(x){x$var.emp}),
                              source = unique(data$source))
   
 }

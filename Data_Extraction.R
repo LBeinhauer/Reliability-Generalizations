@@ -41,5 +41,12 @@ Extraction_Scripts <- list.files(here("Extraction_Scripts"), full.names = TRUE)
 
 # BEWARE: This may take a while! Additionally, this will wipe your environment.
 # extract data from all original data files - this results in a single csv for each scale.
-sapply(Extraction_Scripts, source) # (in folder "Data/Extracted (Project) Data")
+sapply(Extraction_Scripts, FUN = function(x){
+  tryCatch(
+      source(x),
+    
+      error = function(e)(cat("ERROR: ", conditionMessage(e), " - ", x, "\n"))
+    )
+  }
+) # (in folder "Data/Extracted (Project) Data")
 

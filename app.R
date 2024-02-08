@@ -605,58 +605,60 @@ server <- function(input, output) {
     
     
     output$violplotAP <- renderPlot({
-        
+
         set.seed(210622)
-        
+
         alpha_tau <- sapply(Alpha_rma.list, FUN = function(x){
             sqrt(x$tau2)
         })
-        
-        
+
+
         alpha_I2 <- sapply(Alpha_rma.list, FUN = function(x){
             x$I2
         })
-        
+
         alpha_het.sig <- sapply(Alpha_rma.list, FUN = function(x){
             x$QEp <= .05
         })
-        
-        
+
+
         B.alpha_tau <- sapply(Bonett.Alpha_rma.list, FUN = function(x){
             sqrt(x$tau2)
         })
-        
+
         # 1-exp(B.alpha_tau)
-        
+
         B.alpha_I2 <- sapply(Bonett.Alpha_rma.list, FUN = function(x){
             x$I2
         })
-        
+
         B.alpha_het.sig <- sapply(Bonett.Alpha_rma.list, FUN = function(x){
             x$QEp <= .05
         })
-        
+
         alpha_est <- sapply(Alpha_rma.list, FUN = function(x){
             x$b[1]
         })
-        
+
         B.alpha_est <- 1 - exp(sapply(Bonett.Alpha_rma.list, FUN = function(x){
             x$b[1]
         }))
-        
-        
+
+
         # Inbar is not available for Bonett-estimates
-        scales_meta2 <- rbind(scales_meta, scales_meta[-grep("Inbar", scales_meta$Scale),])
-        
+        scales_meta2 <- rbind(scales_meta, scales_meta[-c(grep("Inbar", scales_meta$Scale),
+                                                          grep("Shnabel Moral Image - RPP",  scales_meta$Scale)),])
+
         violin_df2 <- data.frame(estimate = c(alpha_tau, B.alpha_tau, alpha_I2, B.alpha_I2),
-                                 stat = as.factor(rep(c(rep(0, length(alpha_tau)), rep(1, length(B.alpha_tau))), 2)),
+                                 stat = as.factor(c(rep(0, length(alpha_tau) + length(B.alpha_tau)),
+                                                    rep(1, length(alpha_I2) + length(B.alpha_I2)))),
                                  sig = rep(c(alpha_het.sig, B.alpha_het.sig), 2),
                                  Psychometrics = as.factor(rep(scales_meta2$Psychometrics, 2)),
                                  tauI2 = c(rep(0, length(alpha_tau) + length(B.alpha_tau)), rep(1, length(alpha_I2) + length(B.alpha_I2))),
                                  Use = rep(scales_meta2$Use, 2),
                                  scale = rep(scales_meta2$Scale, 2))
-        
-        
+
+
         if(input$Split_AP == "Psychometric vs ad hoc"){
             violin_df2$SplitVar <- violin_df2$Psychometrics
         }
@@ -664,55 +666,55 @@ server <- function(input, output) {
             if(input$Merge_AP == "No"){
                 violin_df2$SplitVar <- violin_df2$Use
             }
-            
+
             if(input$Merge_AP == "Yes"){
                 violin_df2$SplitVar <- violin_df2$Use
-                
+
                 violin_df2$SplitVar[violin_df2$SplitVar %in% c("IV", "MC", "Fil")] <- "other"
-                
+
                 violin_df2$SplitVar <- as.factor(violin_df2$SplitVar)
             }
-            
+
         }
-        
-        
+
+
         if(input$Stat_AP == "Heterogeneity of reliability"){
             if(input$HetEst_AP == "I2"){
-                
+
                 row.labs <- c("Untransformed", "Bonett-transformed")
                 names(row.labs) <- c("0", "1")
-                
+
                 if(input$Split_AP == "Psychometric vs ad hoc"){
                     col.labs <- c("ad hoc constructed", "Psychometrically dev.")
                     names(col.labs) <- c("0", "1")
                 }
                 if(input$Split_AP == "Scale use"){
-                    
+
                     if(input$Merge_AP == "No"){
                         col.labs <- c("Dependent Variable", "Independent Variable", "Auxiliary Variable",
                                       "Manipulation Check", "Filler")
                         names(col.labs) <- c("DV", "IV", "Aux", "MC", "Fil")
                     }
-                    
+
                     if(input$Merge_AP == "Yes"){
                         col.labs <- c("Dependent Variable", "Auxiliary Variable",
                                       "Other")
                         names(col.labs) <- c("DV", "Aux", "other")
                     }
-                    
+
                 }
-                
-                
-                
+
+
+
                 vplot <- violin_df2[which(violin_df2$tauI2 == 1),] %>%
-                    ggplot(., aes(x = 0, y = estimate)) + 
+                    ggplot(., aes(x = 0, y = estimate)) +
                     geom_violin() +
                     geom_boxplot(width = .1) +
-                    facet_grid(rows = vars(stat), cols = vars(SplitVar), 
+                    facet_grid(rows = vars(stat), cols = vars(SplitVar),
                                labeller = labeller(stat = row.labs, SplitVar = col.labs)) +
                     theme(legend.position = "none",
                           panel.background = element_rect(fill = "transparent",
-                                                          colour = NA_character_), 
+                                                          colour = NA_character_),
                           panel.grid.major.y = element_line(colour = "grey"),
                           panel.grid.major.x = element_line(colour = "transparent"),
                           axis.line.x = element_line(colour = "transparent"),
@@ -721,58 +723,58 @@ server <- function(input, output) {
                           plot.background = element_rect(fill = "transparent", colour = NA),
                           axis.text.x = element_blank()) +
                     labs(y = expression("I"^2), x = "")
-                
-                
+
+
                 if(input$Sig.bool_AP){
-                    vplot <- vplot + 
-                        geom_point(aes(x = 0, y = estimate, colour = stat, shape = sig), 
+                    vplot <- vplot +
+                        geom_point(aes(x = 0, y = estimate, colour = stat, shape = sig),
                                    position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7) +
-                        scale_shape_manual(values = c(21, 16)) 
-                    
+                        scale_shape_manual(values = c(21, 16))
+
                 }else{
-                    vplot <- vplot + 
+                    vplot <- vplot +
                         geom_point(aes(x = 0, y = estimate, colour = stat), shape = 16,
                                    position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7)
                 }
-                
-                print(vplot) 
+
+                print(vplot)
             }
-            
-            
+
+
             if(input$HetEst_AP == "tau"){
-                
+
                 row.labs <- c("Untransformed", "Bonett-transformed")
                 names(row.labs) <- c("0", "1")
-                
+
                 if(input$Split_AP == "Psychometric vs ad hoc"){
                     col.labs <- c("ad hoc constructed", "Psychometrically dev.")
                     names(col.labs) <- c("0", "1")
                 }
                 if(input$Split_AP == "Scale use"){
-                    
+
                     if(input$Merge_AP == "No"){
                         col.labs <- c("Dependent Variable", "Independent Variable", "Auxiliary Variable",
                                       "Manipulation Check", "Filler")
                         names(col.labs) <- c("DV", "IV", "Aux", "MC", "Fil")
                     }
-                    
+
                     if(input$Merge_AP == "Yes"){
                         col.labs <- c("Dependent Variable", "Auxiliary Variable",
                                       "Other")
                         names(col.labs) <- c("DV", "Aux", "other")
                     }
-                    
+
                 }
-                
+
                 vplot <- violin_df2[which(violin_df2$tauI2 == 0),] %>%
-                    ggplot(., aes(x = 0, y = estimate)) + 
+                    ggplot(., aes(x = 0, y = estimate)) +
                     geom_violin() +
                     geom_boxplot(width = .1) +
-                    facet_grid(rows = vars(stat), cols = vars(SplitVar), scales = "free", 
+                    facet_grid(rows = vars(stat), cols = vars(SplitVar), scales = "free",
                                labeller = labeller(stat = row.labs, SplitVar = col.labs)) +
                     theme(legend.position = "none",
                           panel.background = element_rect(fill = "transparent",
-                                                          colour = NA_character_), 
+                                                          colour = NA_character_),
                           panel.grid.major.y = element_line(colour = "grey"),
                           panel.grid.major.x = element_line(colour = "transparent"),
                           axis.line.x = element_line(colour = "transparent"),
@@ -781,60 +783,60 @@ server <- function(input, output) {
                           plot.background = element_rect(fill = "transparent", colour = NA),
                           axis.text.x = element_blank()) +
                     labs(y = expression("tau"), x = "")
-                
-                
+
+
                 if(input$Sig.bool_AP){
-                    vplot <- vplot + 
-                        geom_point(aes(x = 0, y = estimate, colour = stat, shape = sig), 
+                    vplot <- vplot +
+                        geom_point(aes(x = 0, y = estimate, colour = stat, shape = sig),
                                    position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7) +
-                        scale_shape_manual(values = c(21, 16)) 
-                    
+                        scale_shape_manual(values = c(21, 16))
+
                 }else{
-                    vplot <- vplot + 
+                    vplot <- vplot +
                         geom_point(aes(x = 0, y = estimate, colour = stat), shape = 16,
                                    position = position_jitter(w = 0.1, h = 0), size = 3, alpha = .7)
                 }
-                
+
                 print(vplot)
             }
-             
+
         }
-        
+
         if(input$Stat_AP == "Reliability estimates"){
             violin_df2$reliability <- rep(c(alpha_est, B.alpha_est), 2)
-            
+
             row.labs <- c("Untransformed", "Bonett-transformed")
             names(row.labs) <- c("0", "1")
-            
+
             if(input$Split_AP == "Psychometric vs ad hoc"){
                 col.labs <- c("ad hoc constructed", "Psychometrically dev.")
                 names(col.labs) <- c("0", "1")
             }
             if(input$Split_AP == "Scale use"){
-                
+
                 if(input$Merge_AP == "No"){
                     col.labs <- c("Dependent Variable", "Independent Variable", "Auxiliary Variable",
                                   "Manipulation Check", "Filler")
                     names(col.labs) <- c("DV", "IV", "Aux", "MC", "Fil")
                 }
-                
+
                 if(input$Merge_AP == "Yes"){
                     col.labs <- c("Dependent Variable", "Auxiliary Variable",
                                   "Other")
                     names(col.labs) <- c("DV", "Aux", "other")
                 }
-                
+
             }
-            
+
             vplot <- violin_df2[which(violin_df2$tauI2 == 0),] %>%
-                ggplot(., aes(x = 0, y = reliability)) + 
+                ggplot(., aes(x = 0, y = reliability)) +
                 geom_violin() +
                 geom_boxplot(width = .1) +
-                facet_grid(rows = vars(stat), cols = vars(SplitVar), scales = "free", 
+                facet_grid(rows = vars(stat), cols = vars(SplitVar), scales = "free",
                            labeller = labeller(stat = row.labs, SplitVar = col.labs)) +
                 theme(legend.position = "none",
                       panel.background = element_rect(fill = "transparent",
-                                                      colour = NA_character_), 
+                                                      colour = NA_character_),
                       panel.grid.major.y = element_line(colour = "grey"),
                       panel.grid.major.x = element_line(colour = "transparent"),
                       axis.line.x = element_line(colour = "transparent"),
@@ -845,12 +847,12 @@ server <- function(input, output) {
                 labs(y = expression("Reliability"), x = "") +
                 geom_point(aes(x = 0, y = reliability, colour = stat),
                            position = position_jitter(w = .1, h = 0))
-            
+
             print(vplot)
         }
-        
-        
-        
+
+
+
     })
     
     

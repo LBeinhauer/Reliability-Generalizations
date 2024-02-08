@@ -99,7 +99,7 @@ names(finalRon)
 # for whatever reason, the code now computes a total 16422 variables, largely empty columns.
 #  before 23/12/21, it used to call those colums X, followed by numbers, starting on 23/12/21, it started calling
 #  them ... (3 dots) followed by numbers. This is tricky to escape using regex, but works using the following code:
-finalRon_relevant <- finalRon[,-grep("^X", names(finalRon))]
+finalRon_relevant <- finalRon[,-grep("^\\.\\.\\.", names(finalRon))]
 
 ch_df <- finalRon_relevant
 

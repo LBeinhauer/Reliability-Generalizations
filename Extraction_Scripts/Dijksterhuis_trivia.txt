@@ -10,7 +10,7 @@
 # Fortunately, we could use some fo the codde form the replication authors.
 
 # List all subdirectories of the different replication sites
-folders <- list.dirs(here("Data/Original Data/RRR8"))
+folders <- list.dirs(here("Data/Original Data/RRR8/Meta-analysis"))
 
 # prepare an empty list object, as well as a counting object
 data_complete <- list()

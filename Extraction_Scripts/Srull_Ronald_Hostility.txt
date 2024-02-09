@@ -2,7 +2,7 @@
 
 
 
-# Ronald Hostility Ratings
+# Behaviour Hostility Ratings
 
 
 
@@ -10,7 +10,7 @@
 #   could be used here. 
 
 # relevant directory
-dir <- here("Data/Original Data/RRR9")
+dir <- here("Data/Original Data/RRR9/SW_Script_and_Data")
 
 # get raw data from working directory and create combined dataset
 
@@ -21,12 +21,19 @@ dir <- here("Data/Original Data/RRR9")
 #  be dropped further down the line.
 
 # ignore errors
-data <- list.files(path = dir, pattern = "*.csv", full.names = TRUE) %>%
-  map_df(~read_csv(., col_types = cols(.default = "c"))) %>%
-  mutate_at(vars(starts_with("ron")), funs(as.numeric)) %>%
-  mutate_at(vars(starts_with("behavior")), funs(as.numeric)) %>%
-  filter(!is.na(id)) # drops the empty rows from the datasets
 
+files <- list.files(path = dir, pattern = "*.csv", full.names = TRUE) 
+dat.list <- lapply(files, data.table::fread)
+vars <- names(dat.list[[1]])
+for(i in 2:length(dat.list)){
+  vars <- intersect(vars, colnames(dat.list[[i]]))
+}
+dat.list.shortened <- lapply(dat.list, FUN = function(x){x[,..vars]})
+data <- do.call(rbind, dat.list.shortened) %>% 
+  mutate_at(vars(starts_with("ron")), list(as.numeric)) %>%
+  mutate_at(vars(starts_with("behavior")), list(as.numeric)) %>%
+  filter(!is.na(id)) # drops the empty rows from the datasets
+  
 
 # some labs need to be renamed
 data[data$lab.name == "Nahari", ]$lab.name <- "klein Selle \\& Rozmann" # these came from same lab
@@ -96,12 +103,7 @@ finalRon <- subset(data,
                         data$inclusion == "inclusion both RRR"))            
 names(finalRon)
 
-# for whatever reason, the code now computes a total 16422 variables, largely empty columns.
-#  before 23/12/21, it used to call those colums X, followed by numbers, starting on 23/12/21, it started calling
-#  them ... (3 dots) followed by numbers. This is tricky to escape using regex, but works using the following code:
-finalRon_relevant <- finalRon[,-grep("^\\.\\.\\.", names(finalRon))]
-
-ch_df <- finalRon_relevant
+ch_df <- finalRon
 
 # items for scale - ronald hostility ratings
 ch_rh_items_c.idx <- which(names(ch_df) %in% 
@@ -110,7 +112,7 @@ ch_rh_items_c.idx <- which(names(ch_df) %in%
 ch_bh_items_c.idx <- which(names(ch_df) %in%
                              c("behavior2", "behavior5", "behavior8", "behavior10", "behavior13"))
 
-# add the required sourece-column
+# add the required source-column
 ch_df <- ch_df %>%
   mutate(source = lab.name)
 
@@ -127,12 +129,11 @@ n_mat_ch <- t(exclusion_labs_ch)
 excl_labs_ch <- names(which(apply(n_mat_ch, MARGIN = 1, min) < 100)) # identify labs with n < 100
 ch_df <- ch_df[which(!ch_df$source %in% excl_labs_ch),]  # retain only labs with n > 99
 
-# retain only the relevant columns, as a large number of columns (more than 16300) are empty
-ch_df <- ch_df[,c(which(names(ch_df) %in% c("lab.name", "inclusion", "sw.prime.cond", "sw.prime.complete", "hostility", "behavMissing", "amb.behaviors", "source")), 
-                  grep("^ron", names(ch_df)),
-                  grep("^behavior", names(ch_df)),
-                  grep("^raven", names(ch_df)))]
-
+# retain only the relevant columns
+ch_df <- as.data.frame(ch_df)[,c(which(names(ch_df) %in% c("lab.name", "inclusion", "sw.prime.cond", "sw.prime.complete", "hostility", "behavMissing", "amb.behaviors", "source")), 
+                                 grep("^ron", names(ch_df)),
+                                 grep("^behavior", names(ch_df)),
+                                 grep("^raven", names(ch_df)))]
 
 
 

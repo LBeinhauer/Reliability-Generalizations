@@ -15,10 +15,10 @@
 convert <- function(x){as.numeric(as.character(x))} # function that converts a column of Qualtrix output to useable form in R
 
 # identify all files in the specific subdirectory
-csv <- list.files(here("Data/Original Data/RRR5/All_Data/Data"), pattern="*.csv", 
+csv <- list.files(here("Data/Original Data/RRR5/Data"), pattern="*.csv", 
                   full.names = FALSE) # names of all csv files in folder
 # include the path in the file-names, so we can call them more easily
-full.csv <- list.files(here("Data/Original Data/RRR5/All_Data/Data"), pattern="*.csv", 
+full.csv <- list.files(here("Data/Original Data/RRR5/Data"), pattern="*.csv", 
                        full.names = TRUE)
 # extract the author's name from the data files
 authors <- sapply(strsplit(csv,split='_',fixed=TRUE),function(x){x[1]}) # authors' names

@@ -2,8 +2,8 @@
 
 # data on the albarracin replication project in ML5 is divided over two data files, one containing lab-data, one containing MTurk data
 dtml5 <- as.data.table(read_excel(here("Data/Original Data/ManyLabs5/Albarracin/ML5 Alb 5 Revised Protocol.xlsx")))     # lab-data
-dtmturk <- as.data.table(read_excel(here("Data/Original Data/ManyLabs5/Albarracin/ML5 Alb 5 RPP Protocol mTurk.xlsx"))) # MTurk-data
-
+# dtmturk <- as.data.table(read_excel(here("Data/Original Data/ManyLabs5/Albarracin/ML5 Alb # 5 RPP Protocol mTurk.xlsx"))) # MTurk-data
+dtmturk <- as.data.table(read_excel(here("Data/Original Data/ManyLabs5/Albarracin/ML5 Alb 5 RPP MTurk Protocol.xlsx"))) # MTurk-data
 
 # albarracin-experiment consists of responses to 21 SAT-like questions
 #  the lab-data and the mturk-data is ideally combined for further analysis

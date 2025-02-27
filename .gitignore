@@ -1,17 +1,26 @@
-# Ignore everything inside Data and Graphics
+# Ignore all content inside Data and Graphics
 Data/*
 Graphics/*
 
-# But don't ignore the subdirectories themselves
-!Data/
-!Graphics/
+# Allow specific subdirectories so that Git can "see" inside them
+!Data/**/
+!Graphics/**/
 
-# And don't ignore the .gitkeep files
-!Data/**/.gitkeep
+# Allow .gitkeep files inside those subdirectories
+!Data/Downloaded Data/.gitkeep
+!Data/Extracted (Project) Data/.gitkeep
+!Data/Original Data/.gitkeep
+!Data/Reliability Estimates/.gitkeep
+!Data/Shiny Data/.gitkeep
+!Data/Variance Estimates/.gitkeep
+!Data/Original Data/ManyLabs1/.gitkeep
+!Data/Original Data/ManyLabs2/.gitkeep
+!Data/Original Data/ManyLabs3/.gitkeep
+!Data/Original Data/ManyLabs5/Shnabel/.gitkeep
+!Data/Original Data/RRR3/.gitkeep
+!Data/Original Data/RRR5/.gitkeep
+!Data/Original Data/RRR6/.gitkeep
+!Data/Original Data/RRR8/.gitkeep
+!Data/Original Data/RRR9/.gitkeep
+!Data/Original Data/RRR10/.gitkeep
 !Graphics/.gitkeep
-
-# Other ignores
-*.DS_Store
-*.Rhistory
-old/
-.Rproj.user

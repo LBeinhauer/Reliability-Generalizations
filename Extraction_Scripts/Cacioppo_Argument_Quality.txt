@@ -9,7 +9,8 @@ el_dat <- data.frame(elm1 = ML3_dat$elm_01,
                      elm3 = ML3_dat$elm_03,
                      elm4 = ML3_dat$elm_04,
                      elm5 = ML3_dat$elm_05,
-                     source = ML3_dat$Site)      # Replication site
+                     source = ML3_dat$Site,
+		     group = ifelse(ML3_dat$ELMCond == -1, 0, 1))      # Replication site
 
 
 el_df <- as.data.frame(na.omit(el_dat)) # participants with missing observations are dropped

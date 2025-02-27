@@ -62,6 +62,7 @@ set.seed(070622)
 
 long_test_lnE <- lapply(seq_along(data.list), FUN = function(x){
   tryCatch(apply_Bootstrap_SE_Project.specific(data.list[[x]], var.component = "ERROR"),
+           
            error = function(e)(cat("ERROR: ", conditionMessage(e), " - ",
                                    substr(names(data.list), 
                                           (regexpr("Project) Data/", names(data.list)) + 14), 
@@ -115,7 +116,24 @@ long_test_X <- lapply(data.list, FUN = function(data){
     
     d <- data[data$source == unique(data$source)[x],-grep("source", names(data))]
     
-    D <- na.omit(d)
+    d <- na.omit(d)
+    
+    if(!is.null(d$group[1])){
+      d1 <- d %>% filter(group == 1) %>% select(-"group")
+      d0 <- d %>% filter(group == 0) %>% select(-"group")
+      
+      n1 <- nrow(d1)
+      n0 <- nrow(d0)
+      
+      var_X1 <- var(rowMeans(d1, na.rm = T), na.rm = T)
+      var_X0 <- var(rowMeans(d0, na.rm = T), na.rm = T)
+      
+      var_X <- ((n1-1)*var_X1 + (n0-1)*var_X0)/(n1+n0-2)
+      
+    }else{
+      
+      var_X <- var(rowMeans(d, na.rm = T), na.rm = T)
+    }
     
     
     varX <- var(rowMeans(D))

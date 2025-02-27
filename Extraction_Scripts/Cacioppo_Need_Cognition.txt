@@ -10,7 +10,8 @@ el_dat <- data.frame(NFC1 = ML3_dat$nfc_01,
                      NFC4 = ML3_dat$nfc_04,
                      NFC5 = ML3_dat$nfc_05,
                      NFC6 = (6 - ML3_dat$nfc_06),
-                     source = ML3_dat$Site)      # Replication site
+                     source = ML3_dat$Site,
+		     group = ifelse(ML3_dat$ELMCond == -1, 0, 1))      # Replication site
 
 
 el_df <- as.data.frame(na.omit(el_dat)) # participants with missing observations are dropped

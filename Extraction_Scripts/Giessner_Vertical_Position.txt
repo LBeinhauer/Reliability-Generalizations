@@ -10,7 +10,8 @@ Giessner_dat <- data.frame(item1 = ML2_S2$geis.dv_1,
                            item3 = ML2_S2$geis.dv_3,
                            item4 = ML2_S2$geis.dv_4,
                            item5 = ML2_S2$geis.dv_5,
-                           source = ML2_S2$Source.Primary)
+                           source = ML2_S2$Source.Primary) %>% 
+  mutate(group = ifelse(is.na(ML2_S2$geis1.1), ifelse(is.na(ML2_S2$geis2.1), NA, 0), 1))
 
 Giessner_df <- Giessner_dat %>%
   filter(rowSums(is.na(Giessner_dat[1:5])) < 1, !is.na(ifelse(is.na(ML2_S2$geis1.1), ifelse(is.na(ML2_S2$geis2.1), NA, 0), 1))) 

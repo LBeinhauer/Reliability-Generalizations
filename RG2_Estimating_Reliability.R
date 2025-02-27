@@ -42,43 +42,6 @@ path_data <- list.files(here("Data/Extracted (Project) Data"), full.names = TRUE
 data.list <- sapply(path_data, read.csv)
 
 
-# the data-files in the list-object have a standardised format.
-#  therefore, Cronbach's Alpha can be estimated in a simple loop across all list-elements
-alpha_estimates.list <- lapply(seq_along(data.list), FUN = function(x){
-  estimate_alpha(data.list[[x]], csv = TRUE, 
-                 project.title = substr(names(data.list), 
-                                        (regexpr("Project) Data/", names(data.list)) + 14), 
-                                        (nchar(names(data.list))-4))[x])
-                   
-}) # the resulting file is another list, containing data.frames for each assessed scale.
-#  each data.frame contains an estimate of reliability using Cronbach's Alpha, its standard 
-#  error and in which lab/source the data, from which the estimate was derived, was collected
-
-
-
-
-
-# 
-# omega_estimates.list <- lapply(seq_along(data.list), FUN = function(x){
-#   
-#   tryCatch({
-#     estimate_omega(data.list[[x]][which(rowSums(is.na(data.list[[x]])) <= 1),], csv = TRUE, 
-#                    project.title = substr(names(data.list),
-#                                           (regexpr("Project) Data/", names(data.list)) + 14),
-#                                           (nchar(names(data.list))-4))[x])
-#   },
-#   
-#   error = function(e)(cat("ERROR: ", conditionMessage(e), " - ", 
-#                           substr(names(data.list), 
-#                                  (regexpr("Project) Data/", names(data.list)) + 14), 
-#                                  (nchar(names(data.list))-4))[x], 
-#                           " - ", x, "\n"))
-#   )
-#   
-# 
-# })
-
-
 
 # the data-files in the list-object have a standardised format.
 #  therefore, Bonett-transformed Cronbach's Alpha can be estimated in a simple loop across all 
@@ -113,23 +76,4 @@ Bonett.alpha_estimates.list <- lapply(seq_along(data.list), FUN = function(x){
 #  derived, was collected
 
 
-# 
-# 
-# Bonett.omega_estimates.list <- lapply(seq_along(data.list), FUN = function(x){
-#   tryCatch({
-#     estimate_Bonett_omega(data.list[[x]][which(rowSums(is.na(data.list[[x]])) <= 1),], csv = TRUE, 
-#                           project.title = substr(names(data.list), 
-#                                                  (regexpr("Project) Data/", names(data.list)) + 14), 
-#                                                  (nchar(names(data.list))-4))[x])
-#   },
-#   
-#   error = function(e)(cat("ERROR: ", conditionMessage(e), " - ", 
-#                           substr(names(data.list), 
-#                                  (regexpr("Project) Data/", names(data.list)) + 14), 
-#                                  (nchar(names(data.list))-4))[x], 
-#                           " - ", x, "\n"))
-#   
-#   )
-#   
-# })
 

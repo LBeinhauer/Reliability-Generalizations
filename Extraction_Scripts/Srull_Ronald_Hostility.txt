@@ -33,7 +33,7 @@ data <- do.call(rbind, dat.list.shortened) %>%
   mutate_at(vars(starts_with("ron")), list(as.numeric)) %>%
   mutate_at(vars(starts_with("behavior")), list(as.numeric)) %>%
   filter(!is.na(id)) # drops the empty rows from the datasets
-  
+
 
 # some labs need to be renamed
 data[data$lab.name == "Nahari", ]$lab.name <- "klein Selle \\& Rozmann" # these came from same lab
@@ -114,7 +114,8 @@ ch_bh_items_c.idx <- which(names(ch_df) %in%
 
 # add the required source-column
 ch_df <- ch_df %>%
-  mutate(source = lab.name)
+  mutate(source = lab.name,
+         group = ifelse(sw.prime.cond == "neutral", yes = 0, no = 1))
 
 
 # excluding labs, with fewer than 100 participants in a condition, as required by the replication authors
@@ -130,7 +131,7 @@ excl_labs_ch <- names(which(apply(n_mat_ch, MARGIN = 1, min) < 100)) # identify 
 ch_df <- ch_df[which(!ch_df$source %in% excl_labs_ch),]  # retain only labs with n > 99
 
 # retain only the relevant columns
-ch_df <- as.data.frame(ch_df)[,c(which(names(ch_df) %in% c("lab.name", "inclusion", "sw.prime.cond", "sw.prime.complete", "hostility", "behavMissing", "amb.behaviors", "source")), 
+ch_df <- as.data.frame(ch_df)[,c(which(names(ch_df) %in% c("lab.name", "inclusion", "group", "sw.prime.complete", "hostility", "behavMissing", "amb.behaviors", "source")), 
                                  grep("^ron", names(ch_df)),
                                  grep("^behavior", names(ch_df)),
                                  grep("^raven", names(ch_df)))]
@@ -138,7 +139,7 @@ ch_df <- as.data.frame(ch_df)[,c(which(names(ch_df) %in% c("lab.name", "inclusio
 
 
 # retain only columns relevant for this scale:
-ch_df <- ch_df[,c("ron.hostile", "ron.unfriendly", "ron.dislikable", "ron.kindR", "ron.considerateR", "ron.thoughtfulR", "source")]
+ch_df <- ch_df[,c("ron.hostile", "ron.unfriendly", "ron.dislikable", "ron.kindR", "ron.considerateR", "ron.thoughtfulR", "source", "group")]
 
 write.csv(ch_df, here("Data/Extracted (Project) Data/Srull_Ronald_Hostility.csv"), row.names = FALSE)
 

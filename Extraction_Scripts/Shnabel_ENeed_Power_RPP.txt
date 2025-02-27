@@ -7,7 +7,8 @@ ml5_computed <- fread(here("Data/Original Data/ManyLabs5/Shnabel/ml5_computed_da
 nb_df <- data.frame(EN.moreInfluence = ml5_computed$EN.moreInfluence,  # 1st three are EN.power
                     EN.moreControl = ml5_computed$EN.moreControl,
                     EN.moreApprec = ml5_computed$EN.moreApprec,
-                    source = ml5_computed$site)
+                    source = ml5_computed$site,
+                    group = ifelse(ml5_computed$Condition %in% c(1,2,5,6), yes = 1, no = 0))
 
 nb_df <- nb_df[which(ml5_computed$time == 1 & ml5_computed$protocol == 0),]
 

@@ -417,7 +417,8 @@ table(data.df2$leadingAuthor)
 sm_df <- data.df2
 
 sm_df <- data.frame(sapply(sm_df[,grep("rating", names(sm_df))], as.numeric),
-                    source = sm_df$leadingAuthor)
+                    source = sm_df$leadingAuthor,
+                    group = sm_df$factor)
 
 write.csv(sm_df, here("Data/Extracted (Project) Data/Strack_Facial_Feedback.csv"), row.names = FALSE)
 

@@ -84,11 +84,12 @@ rb_item_vec <- grep("triv.*correct", names(rb_df))
 rb_df[,rb_item_vec] <- as.numeric(rb_df[,rb_item_vec] == TRUE) # transform these items' responses to numeric for analysis
 
 # further remove a number of abundant columns not needed for our purposes.
-rb_df <- rb_df[,-c(grep("_raw$", names(rb_df)), which(names(rb_df) %in% c("datetime", "subjID", "prime_condition", "sex", "prime_response")))]
+rb_df <- rb_df[,-c(grep("_raw$", names(rb_df)), which(names(rb_df) %in% c("datetime", "subjID", "prime_condition", "sex", "prime_response", "prime_code")))] %>% 
+  mutate(group = rb_df$prime_code)
 
 
 # keep only variables relevant for this scale:
-rb_df <- rb_df[,c(names(rb_df)[grep("^triv", names(rb_df))], "source")]
+rb_df <- rb_df[,c(names(rb_df)[grep("^triv", names(rb_df))], "source", "group")]
 
 
 

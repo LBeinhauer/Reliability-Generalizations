@@ -37,34 +37,6 @@ source(here("RG_function-library.R"))
 
 Reliability_estimates_paths <- list.files(here("Data/Reliability Estimates"), full.names =  TRUE)
 
-Alpha_estimates_paths <- Reliability_estimates_paths[grep("_Alpha.csv$", Reliability_estimates_paths)]
-
-
-Alpha_rma.list <- lapply(Alpha_estimates_paths, FUN = function(x){
-  d <- read.csv(x)
-  
-  metafor::rma(measure = "GEN", method = "REML", yi = d$Reliability, sei = d$StandardError)
-})
-
-names(Alpha_rma.list) <- substr(Alpha_estimates_paths,
-                                (regexpr("Reliability Estimates/", Alpha_estimates_paths) + 22),
-                                (nchar(Alpha_estimates_paths)-10))
-
-# 
-# 
-# Omega_estimates_paths <- Reliability_estimates_paths[grep("_Omega.csv$", Reliability_estimates_paths)]
-# 
-# Omega_rma.list <- lapply(Omega_estimates_paths, FUN = function(x){
-#   d <- read.csv(x)
-#   
-#   metafor::rma(measure = "GEN", method = "REML", yi = d$Reliability, sei = d$StandardError)
-# })
-# 
-# names(Omega_rma.list) <- substr(Omega_estimates_paths,
-#                                 (regexpr("Reliability Estimates/", Omega_estimates_paths) + 22),
-#                                 (nchar(Omega_estimates_paths)-10))
-
-
 
 Bonett.Alpha_estimates_paths <- Reliability_estimates_paths[grep("_Bonett-Alpha.csv$", Reliability_estimates_paths)]
 
@@ -79,21 +51,29 @@ names(Bonett.Alpha_rma.list) <- substr(Bonett.Alpha_estimates_paths[-7],
                                        (nchar(Bonett.Alpha_estimates_paths[-7])-17))
 
 
-# 
-# 
-# Bonett.Omega_estimates_paths <- Reliability_estimates_paths[grep("_Bonett-Omega.csv$", Reliability_estimates_paths)]
-# 
-# Bonett.Omega_rma.list <- lapply(Bonett.Omega_estimates_paths, FUN = function(x){
-#   d <- read.csv(x)
-#   
-#   metafor::rma(measure = "GEN", method = "REML", yi = d$Reliability, sei = d$StandardError)
-# })
-# 
-# names(Bonett.Omega_rma.list) <- substr(Bonett.Omega_estimates_paths,
-#                                        (regexpr("Reliability Estimates/", Bonett.Omega_estimates_paths) + 22),
-#                                        (nchar(Bonett.Omega_estimates_paths)-17))
-
-saveRDS(Alpha_rma.list, file = here("Data/Shiny Data/Alpha_rma.list.RData"))
-#saveRDS(Omega_rma.list, file = here("Data/Shiny Data/Omega_rma.list.RData"))
 saveRDS(Bonett.Alpha_rma.list, file = here("Data/Shiny Data/Bonett.Alpha_rma.list.RData"))
-#saveRDS(Bonett.Omega_rma.list, file = here("Data/Shiny Data/Bonett.Omega_rma.list.RData"))
+
+
+# function to estimate heterogeneity in Cronbach's Alpha, if transformation was used
+var_Bonnett_backtransformed <- function(rma_obj){
+  (((-exp(rma_obj$b[1]))^2) * rma_obj$tau2) + (.5*((-exp(rma_obj$b[1]))^2)*(rma_obj$tau2^2)) + ((-exp(rma_obj$b[1])) * (-exp(rma_obj$b[1])) * (rma_obj$tau2^2))
+}
+
+# function to estimate mean value of Cronbach's Alpha, if transformation was used
+mean_Bonnett_backtransformed <- function(rma_obj){
+  1 - exp(rma_obj$b[1]) + ((-exp(rma_obj$b[1])) / 2) * rma_obj$tau2
+}
+
+
+
+
+
+
+RG_ma_df <- data.frame(mu_alpha = sapply(Bonett.Alpha_rma.list, mean_Bonnett_backtransformed),
+                       tau_alpha = sqrt(sapply(Bonett.Alpha_rma.list, var_Bonnett_backtransformed)),
+                       QEp = sapply(Bonett.Alpha_rma.list, FUN = function(x){x$QEp}),
+                       I2 = sapply(Bonett.Alpha_rma.list, FUN = function(x){x$I2}),
+                       H2 = sapply(Bonett.Alpha_rma.list, FUN = function(x){x$H2}))
+
+write.csv(RG_ma_df, file = here("Data/Shiny Data/RG-MA_results.csv"))
+

@@ -8,6 +8,7 @@ dtmturk <- as.data.table(read_excel(here("Data/Original Data/ManyLabs5/Albarraci
 # albarracin-experiment consists of responses to 21 SAT-like questions
 #  the lab-data and the mturk-data is ideally combined for further analysis
 ap_df <- data.frame(source = c(dtml5$Location, rep("Mturk", nrow(dtmturk))),
+		    group = c(ifelse(dtml5$Condition == "action", 1, 0), ifelse(dtmturk$Condition == "action", 1, 0)),
                     SAT1 = c(dtml5$SAT1, dtmturk$SAT1),
                     SAT2 = c(dtml5$SAT2, dtmturk$SAT2),
                     SAT3 = c(dtml5$SAT3, dtmturk$SAT3),

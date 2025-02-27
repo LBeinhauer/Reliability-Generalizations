@@ -1,8 +1,22 @@
-Data/*
 *.DS_Store
 *.Rhistory
 old/
 .Rproj.user
+Data/Downloaded Data/*
+Data/Extracted (Project) Data/*
+Data/Original Data/ManyLabs1/*
+Data/Original Data/ManyLabs2/*
+Data/Original Data/ManyLabs3/*
+Data/Original Data/ManyLabs5/*
+Data/Original Data/RRR3/*
+Data/Original Data/RRR5/*
+Data/Original Data/RRR6/*
+Data/Original Data/RRR8/*
+Data/Original Data/RRR9/*
+Data/Original Data/RRR10/*
+Data/Reliability Estimates/*
+Data/Shiny Data/*
+Data/Variance Estimates/*
 !Data/Downloaded Data/.gitkeep
 !Data/Extracted (Project) Data/.gitkeep
 !Data/Original Data/.gitkeep

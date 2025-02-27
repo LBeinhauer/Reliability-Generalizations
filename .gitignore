@@ -1,12 +1,8 @@
-# Ignore all content inside Data and Graphics
 Data/*
-Graphics/*
-
-# Allow specific subdirectories so that Git can "see" inside them
-!Data/**/
-!Graphics/**/
-
-# Allow .gitkeep files inside those subdirectories
+*.DS_Store
+*.Rhistory
+old/
+.Rproj.user
 !Data/Downloaded Data/.gitkeep
 !Data/Extracted (Project) Data/.gitkeep
 !Data/Original Data/.gitkeep
@@ -23,4 +19,5 @@ Graphics/*
 !Data/Original Data/RRR8/.gitkeep
 !Data/Original Data/RRR9/.gitkeep
 !Data/Original Data/RRR10/.gitkeep
+Graphics/*
 !Graphics/.gitkeep

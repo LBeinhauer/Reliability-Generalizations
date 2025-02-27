@@ -7,7 +7,9 @@ Data/Extracted (Project) Data/*
 Data/Original Data/ManyLabs1/*
 Data/Original Data/ManyLabs2/*
 Data/Original Data/ManyLabs3/*
-Data/Original Data/ManyLabs5/*
+Data/Original Data/ManyLabs5/Shnabel/*
+Data/Original Data/ManyLabs5/LoBue/*
+Data/Original Data/ManyLabs5/Albarracin/*
 Data/Original Data/RRR3/*
 Data/Original Data/RRR5/*
 Data/Original Data/RRR6/*
@@ -27,6 +29,8 @@ Data/Variance Estimates/*
 !Data/Original Data/ManyLabs2/.gitkeep
 !Data/Original Data/ManyLabs3/.gitkeep
 !Data/Original Data/ManyLabs5/Shnabel/.gitkeep
+!Data/Original Data/ManyLabs5/LoBue/.gitkeep
+!Data/Original Data/ManyLabs5/Albarracin/.gitkeep
 !Data/Original Data/RRR3/.gitkeep
 !Data/Original Data/RRR5/.gitkeep
 !Data/Original Data/RRR6/.gitkeep

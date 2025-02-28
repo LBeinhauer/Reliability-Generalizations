@@ -249,8 +249,8 @@ bootstrap_SE_varT <- function(data, indices, stat = "ALPHA"){
   
   
   if(!is.null(d$group[1])){
-    d1 <- d %>% filter(group == 1) %>% select(-"group")
-    d0 <- d %>% filter(group == 0) %>% select(-"group")
+    d1 <- d %>% filter(group == 1) %>% dplyr::select(-"group")
+    d0 <- d %>% filter(group == 0) %>% dplyr::select(-"group")
     
     n1 <- nrow(d1)
     n0 <- nrow(d0)
@@ -327,8 +327,8 @@ bootstrap_SE_varE <- function(data, indices, stat = "ALPHA"){
   }
   
   if(!is.null(d$group[1])){
-    d1 <- d %>% filter(group == 1) %>% select(-"group")
-    d0 <- d %>% filter(group == 0) %>% select(-"group")
+    d1 <- d %>% filter(group == 1) %>% dplyr::select(-"group")
+    d0 <- d %>% filter(group == 0) %>% dplyr::select(-"group")
     
     n1 <- nrow(d1)
     n0 <- nrow(d0)
@@ -410,8 +410,8 @@ apply_Bootstrap_SE_Project.specific <- function(data, var.component = c("TRUE", 
     
     
     if(!is.null(d$group[1])){
-      d1 <- d %>% filter(group == 1) %>% select(-"group")
-      d0 <- d %>% filter(group == 0) %>% select(-"group")
+      d1 <- d %>% filter(group == 1) %>% dplyr::select(-"group")
+      d0 <- d %>% filter(group == 0) %>% dplyr::select(-"group")
       
       n1 <- nrow(d1)
       n0 <- nrow(d0)

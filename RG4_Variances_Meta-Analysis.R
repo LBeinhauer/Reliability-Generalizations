@@ -70,7 +70,7 @@ long_test_lnE <- lapply(seq_along(data.list), FUN = function(x){
                                    " - ", x, "\n")))
 })
 
-saveRDS(long_test_lnE, file = here("Notes/bootstrapped_lnvarE.RData"))
+saveRDS(long_test_lnE, file = here("Data/Shiny Data/bootstrapped_lnvarE.RData"))
 
 
 varE_rma.list <- lapply(seq_along(long_test_lnE), FUN = function(x){
@@ -87,7 +87,25 @@ varE_rma.list <- lapply(seq_along(long_test_lnE), FUN = function(x){
 
 names(varE_rma.list) <- names(data.list)
 
-saveRDS(varE_rma.list, file = here("Notes/bootstrapped_varE_rma.RData"))
+saveRDS(varE_rma.list, file = here("Data/Shiny Data/bootstrapped_varE_rma.RData"))
+
+
+bt_var_m <- function(rma_obj){
+  exp(rma_obj$b[1] + (.5*rma_obj$tau2))
+}
+
+bt_var_v <- function(rma_obj){
+  (exp(rma_obj$tau2) - 1) * exp((2 * rma_obj$b[1]) + rma_obj$tau2)
+}
+
+
+varE_rma <- data.frame(mu_varE = sapply(varE_rma.list, bt_var_m),
+                       tau_varE = sqrt(sapply(varE_rma.list, bt_var_v)),
+                       QEp = sapply(varE_rma.list, FUN = function(x){x$QEp}),
+                       H2 = sapply(varE_rma.list, FUN = function(x){x$H2}),
+                       I2 = sapply(varE_rma.list, FUN = function(x){x$I2}),
+                       MASC = str_sub(names(data.list), start = 96, end = nchar(names(data.list)) - 4),
+                       row.names = NULL)
 
 
 # 

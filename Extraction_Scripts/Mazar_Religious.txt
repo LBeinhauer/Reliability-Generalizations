@@ -35,7 +35,8 @@ pc_df <- pc_df[,c(which(names(pc_df) %in% c("lab.name", "inclusion", "maz.prime.
                   grep("^hex", names(pc_df)))]
 
 
-pc_df <- pc_df[,c(names(pc_df)[grep("religious", names(pc_df))], "source")]
+pc_df <- pc_df[,c(names(pc_df)[grep("religious", names(pc_df))], "source")] %>% 
+  mutate(group = ifelse(pc_df$maz.prime.cond == "books", yes = 0, no = 1)) 
 
 write.csv(pc_df, here("Data/Extracted (Project) Data/Mazar_Religious.csv"), row.names = FALSE)
 

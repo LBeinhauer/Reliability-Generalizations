@@ -54,9 +54,10 @@ ia_df <- ml3_Hart
 
 # adding a "factor" column
 ia_df <- as.data.frame(ia_df) %>%
-  mutate(factor = Condition)
+  mutate(factor = Condition,
+         group = ifelse(Condition == 1, 1, 0))
 
-ia_df <- ia_df[,c("A8", "A9", "A10", "source")] # keep only relevant items for this scale
+ia_df <- ia_df[,c("A8", "A9", "A10", "source", "group")] # keep only relevant items for this scale
 
 write.csv(ia_df, here("Data/Extracted (Project) Data/Hart_Intention_Attribution.csv"), row.names = FALSE)
 

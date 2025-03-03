@@ -10,7 +10,8 @@ fp_df <- data.frame(flagdv1 = ML1_dat$flagdv1,
                     flagdv6 = ML1_dat$flagdv6, 
                     flagdv7 = ML1_dat$flagdv7, 
                     flagdv8 = ML1_dat$flagdv8, 
-                    source = ML1_dat$referrer) %>%
+                    source = ML1_dat$referrer,
+		    group = ML1_dat$flagGroup) %>%
   mutate(source = as.factor(source)) %>%
   filter(ML1_dat$flagfilter == 1, !is.na(ML1_dat$flagdv))
 

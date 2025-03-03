@@ -9,8 +9,9 @@ ea_df <- data.frame(art1 = ML1_dat$iatexplicitart1,
                     art5 = ML1_dat$iatexplicitart5,
                     art6 = ML1_dat$iatexplicitart6,
                     source = ML1_dat$referrer) %>%
-  filter(ML1_dat$IATEXPfilter == 1, !is.na(ML1_dat$d_art))
-
+    mutate(group = ifelse(ML1_dat$partgender == 2, yes = 1, no = ifelse(is.na(ML1_dat$partgender), NA, 0))) %>% 
+    filter(ML1_dat$IATEXPfilter == 1, !is.na(ML1_dat$d_art))
+    
 write.csv(ea_df, here("Data/Extracted (Project) Data/Nosek_Explicit_Art.csv"), row.names = FALSE)
-
+    
 rm(ea_df, ML1_dat)

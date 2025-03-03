@@ -85,25 +85,66 @@ estimate_omega <- function(data, csv = FALSE, project.title = NULL){
 
 estimate_Bonett_alpha <- function(data, csv = FALSE, project.title = NULL){
   
+  data <- na.omit(data)
+  
+  # compute nr. of groups
   k <- length(unique(data$source))
+  # identify "source"-colum
   s.idx <- grep("source", names(data))
-  j <- k-1
+  # compute group-sample size
   n <- data %>%
     group_by(source) %>%
     summarise(n = n())
   n <- n$n
   
-  est <- apply(as.matrix(1:k), MARGIN = 1, FUN = function(x){
-    d <- data[which(data$source == unique(data$source)[x]), -s.idx]
+  j <- sum(!names(data) %in% c("source", "group"))
+  
+  Alpha <- sapply(as.matrix(1:k), FUN = function(x){
     
-    spsUtil::quiet(psych::alpha(d))
+    if(!is.null(data$group[1])){
+      
+      d1 <- data %>% 
+        filter(source == unique(data$source)[x]) %>% 
+        filter(group == 1) %>% 
+        dplyr::select(-c("group", "source"))
+      
+      d0 <- data %>% 
+        filter(source == unique(data$source)[x]) %>% 
+        filter(group == 0) %>% 
+        dplyr::select(-c("group", "source"))
+      
+      C1 <- cov(d1)
+      j <- dim(C1)[1]
+      alpha1 <- (1 - sum(diag(C1))/sum(C1)) * (j/(j - 1))
+      
+      C0 <- cov(d0)
+      j <- dim(C0)[1]
+      alpha0 <- (1 - sum(diag(C0))/sum(C0)) * (j/(j - 1))
+      
+      n1 <- nrow(d1)
+      n0 <- nrow(d0)
+      
+      alpha <- (n1 / (n0 + n1)) * alpha1 + (n0 / (n0 + n1)) * alpha0
+    }else{
+      
+      d <- data %>% 
+        filter(source == unique(data$source)[x]) %>% 
+        dplyr::select(-"source")
+      
+      C <- cov(d)
+      j <- dim(C)[1]
+      alpha <- (1 - sum(diag(C))/sum(C)) * (j/(j - 1))
+      
+    }
+    
+    return(alpha)
+    
   })  
   
-  Alpha <- sapply(est, FUN = function(x){x$total$raw_alpha})
-  
-  if(Alpha < 0){
-    stop("Estimate of Coefficient Alpha is negative - variance breakdown is futile")
-  }
+ 
+  # if(sum(Alpha < 0) > 0){
+  #   stop("Estimate of Coefficient Alpha is negative - variance breakdown is futile")
+  # }
   
   B.Alpha <- log(1 - Alpha)
   SE_B.Alpha <- sqrt((2 * j)/((j - 1) * (n - 2)))                
@@ -124,7 +165,7 @@ estimate_Bonett_omega <- function(data, csv = FALSE, project.title = NULL){
   
   k <- length(unique(data$source))
   s.idx <- grep("source", names(data))
-  j <- k-1
+  j <- length(names(data[,-s.idx]))
   n <- data %>%
     group_by(source) %>%
     summarise(n = n())
@@ -138,7 +179,7 @@ estimate_Bonett_omega <- function(data, csv = FALSE, project.title = NULL){
   
   Omega <- sapply(est, FUN = function(x){x$omega})
   
-  if(Omega < 0){
+  if(sum(Omega < 0) > 0){
     stop("Estimate of Coefficient Alpha is negative - variance breakdown is futile")
   }
   
@@ -162,13 +203,42 @@ bootstrap_SE_varT <- function(data, indices, stat = "ALPHA"){
   
   d <- data[indices,]
   
+  d <- na.omit(d)
+  
   if(stat == "ALPHA"){
-    alpha_fit <- psych::alpha(d, warnings = FALSE)
-    
-    alpha <- alpha_fit$total[1]
+    if(!is.null(d$group[1])){
+      
+      d1 <- d %>% 
+        filter(group == 1) %>% 
+        dplyr::select(-c("group"))
+      
+      d0 <- d %>% 
+        filter(group == 0) %>% 
+        dplyr::select(-c("group"))
+      
+      C1 <- cov(d1)
+      j <- dim(C1)[1]
+      alpha1 <- (1 - sum(diag(C1))/sum(C1)) * (j/(j - 1))
+      
+      C0 <- cov(d0)
+      j <- dim(C0)[1]
+      alpha0 <- (1 - sum(diag(C0))/sum(C0)) * (j/(j - 1))
+      
+      n1 <- nrow(d1)
+      n0 <- nrow(d0)
+      
+      alpha <- (n1 / (n0 + n1)) * alpha1 + (n0 / (n0 + n1)) * alpha0
+    }else{
+      
+      C <- cov(d)
+      j <- dim(C)[1]
+      alpha <- (1 - sum(diag(C))/sum(C)) * (j/(j - 1))
+      
+    }
     
     rel <- alpha
   }
+  
   if(stat == "OMEGA"){
     omega_fit <- coefficientalpha::omega(d, se = F, varphi = 0, test = F)
     
@@ -178,9 +248,28 @@ bootstrap_SE_varT <- function(data, indices, stat = "ALPHA"){
   }
   
   
-  var_X <- var(rowMeans(d, na.rm = T), na.rm = T)
+  if(!is.null(d$group[1])){
+    d1 <- d %>% filter(group == 1) %>% dplyr::select(-"group")
+    d0 <- d %>% filter(group == 0) %>% dplyr::select(-"group")
+    
+    n1 <- nrow(d1)
+    n0 <- nrow(d0)
+    
+    var_X1 <- var(rowMeans(d1, na.rm = T), na.rm = T)
+    var_X0 <- var(rowMeans(d0, na.rm = T), na.rm = T)
+    
+    var_X <- ((n1-1)*var_X1 + (n0-1)*var_X0)/(n1+n0-2)
+    
+    var_T <- as.numeric(rel * var_X)
+    
+  }else{
+    
+    var_X <- var(rowMeans(d, na.rm = T), na.rm = T)
+    
+    var_T <- as.numeric(rel * var_X)
+    
+  }
   
-  var_T <- as.numeric(rel * var_X)
   
   return(var_T)
   
@@ -192,12 +281,42 @@ bootstrap_SE_varE <- function(data, indices, stat = "ALPHA"){
   
   d <- data[indices,]
   
+  d <- na.omit(d)
+  
   if(stat == "ALPHA"){
-    alpha_fit <- psych::alpha(d, warnings = FALSE)
     
-    alpha <- alpha_fit$total[1]
+    if(!is.null(d$group[1])){
+      
+      d1 <- d %>% 
+        filter(group == 1) %>% 
+        dplyr::select(-c("group"))
+      
+      d0 <- d %>% 
+        filter(group == 0) %>% 
+        dplyr::select(-c("group"))
+      
+      C1 <- cov(d1)
+      j <- dim(C1)[1]
+      alpha1 <- (1 - sum(diag(C1))/sum(C1)) * (j/(j - 1))
+      
+      C0 <- cov(d0)
+      j <- dim(C0)[1]
+      alpha0 <- (1 - sum(diag(C0))/sum(C0)) * (j/(j - 1))
+      
+      n1 <- nrow(d1)
+      n0 <- nrow(d0)
+      
+      alpha <- (n1 / (n0 + n1)) * alpha1 + (n0 / (n0 + n1)) * alpha0
+    }else{
+      
+      C <- cov(d)
+      j <- dim(C)[1]
+      alpha <- (1 - sum(diag(C))/sum(C)) * (j/(j - 1))
+      
+    }
     
     rel <- alpha
+    
   }
   if(stat == "OMEGA"){
     omega_fit <- coefficientalpha::omega(d, se = F, varphi = 0, test = F)
@@ -207,9 +326,27 @@ bootstrap_SE_varE <- function(data, indices, stat = "ALPHA"){
     rel <- omega
   }
   
-  var_X <- var(rowMeans(d, na.rm = T), na.rm = T)
-  
-  var_T <- as.numeric(rel * var_X)
+  if(!is.null(d$group[1])){
+    d1 <- d %>% filter(group == 1) %>% dplyr::select(-"group")
+    d0 <- d %>% filter(group == 0) %>% dplyr::select(-"group")
+    
+    n1 <- nrow(d1)
+    n0 <- nrow(d0)
+    
+    var_X1 <- var(rowMeans(d1, na.rm = T), na.rm = T)
+    var_X0 <- var(rowMeans(d0, na.rm = T), na.rm = T)
+    
+    var_X <- ((n1-1)*var_X1 + (n0-1)*var_X0)/(n1+n0-2)
+    
+    var_T <- as.numeric(rel * var_X)
+    
+  }else{
+    
+    var_X <- var(rowMeans(d, na.rm = T), na.rm = T)
+    
+    var_T <- as.numeric(rel * var_X)
+    
+  }
   
   var_E <- var_X - var_T
   
@@ -236,13 +373,78 @@ apply_Bootstrap_SE_Project.specific <- function(data, var.component = c("TRUE", 
                  stat = "ALPHA",
                  R = R)
     
-    return(data.frame(SE = sd(bvar$t), 
-                      boot.mean = mean(bvar$t)))
+    d <- data[data$source == unique(data$source)[x],-grep("source", names(data))]
+    
+    d <- na.omit(d)
+    
+    if(!is.null(d$group[1])){
+      
+      d1 <- d %>% 
+        filter(group == 1) %>% 
+        dplyr::select(-c("group"))
+      
+      d0 <- d %>% 
+        filter(group == 0) %>% 
+        dplyr::select(-c("group"))
+      
+      C1 <- cov(d1)
+      j <- dim(C1)[1]
+      alpha1 <- (1 - sum(diag(C1))/sum(C1)) * (j/(j - 1))
+      
+      C0 <- cov(d0)
+      j <- dim(C0)[1]
+      alpha0 <- (1 - sum(diag(C0))/sum(C0)) * (j/(j - 1))
+      
+      n1 <- nrow(d1)
+      n0 <- nrow(d0)
+      
+      alpha <- (n1 / (n0 + n1)) * alpha1 + (n0 / (n0 + n1)) * alpha0
+    }else{
+      
+      C <- cov(d)
+      j <- dim(C)[1]
+      alpha <- (1 - sum(diag(C))/sum(C)) * (j/(j - 1))
+      
+    }
+    
+    
+    
+    if(!is.null(d$group[1])){
+      d1 <- d %>% filter(group == 1) %>% dplyr::select(-"group")
+      d0 <- d %>% filter(group == 0) %>% dplyr::select(-"group")
+      
+      n1 <- nrow(d1)
+      n0 <- nrow(d0)
+      
+      var_X1 <- var(rowMeans(d1, na.rm = T), na.rm = T)
+      var_X0 <- var(rowMeans(d0, na.rm = T), na.rm = T)
+      
+      var_X <- ((n1-1)*var_X1 + (n0-1)*var_X0)/(n1+n0-2)
+      
+    }else{
+      
+      var_X <- var(rowMeans(d, na.rm = T), na.rm = T)
+    }
+    
+    
+    if(var.component == "TRUE"){
+      var_est <- as.numeric(var_X * alpha )
+    }
+    if(var.component == "ERROR"){
+      var_est <- as.numeric(var_X * (1-alpha))
+    }
+    
+    
+    
+    return(data.frame(SE = sd(log(bvar$t)), 
+                      boot.mean = mean(log(bvar$t)),
+                      var.emp = log(var_est)))
   })
   )
   
   df.formatted <- data.frame(SE = sapply(df, FUN = function(x){x$SE}),
                              boot.mean = sapply(df, FUN = function(x){x$boot.mean}),
+                             var.est = sapply(df, FUN = function(x){x$var.emp}),
                              source = unique(data$source))
   
 }

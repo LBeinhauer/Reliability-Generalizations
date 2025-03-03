@@ -8,7 +8,8 @@ cp_df <- data.frame(sysjust1 = ML1_dat$sysjust1,
                     sysjust6 = ML1_dat$sysjust6,
                     sysjust7 = ML1_dat$sysjust7,
                     sysjust8 = ML1_dat$sysjust8,
-                    source = ML1_dat$referrer) %>%
+                    source = ML1_dat$referrer,
+		    group = ML1_dat$MoneyGroup) %>%
   mutate(source = as.factor(source)) %>%
   filter(!is.na(ML1_dat$Sysjust))
 

@@ -6,7 +6,8 @@ ic_df <- data.frame(imaginedexplicit1 = ML1_dat$imaginedexplicit1,
                     imaginedexplicit2 = ML1_dat$imaginedexplicit2,
                     imaginedexplicit3 = ML1_dat$imaginedexplicit3,
                     imaginedexplicit4 = ML1_dat$imaginedexplicit4,
-                    source = ML1_dat$referrer) %>%
+                    source = ML1_dat$referrer,
+                    group = ML1_dat$ContactGroup) %>%
   mutate(source = as.factor(source)) %>%
   filter(!is.na(ML1_dat$Imagineddv))
 

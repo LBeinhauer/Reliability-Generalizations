@@ -1,7 +1,7 @@
 ### RRR 5 - Close Relationships (Finkel et al, 2002)
 
 
-# Self-Deception
+# Self Deception
 
 
 
@@ -15,10 +15,10 @@
 convert <- function(x){as.numeric(as.character(x))} # function that converts a column of Qualtrix output to useable form in R
 
 # identify all files in the specific subdirectory
-csv <- list.files(here("Data/Original Data/RRR5/All_Data/Data"), pattern="*.csv", 
+csv <- list.files(here("Data/Original Data/RRR5/Data"), pattern="*.csv", 
                   full.names = FALSE) # names of all csv files in folder
 # include the path in the file-names, so we can call them more easily
-full.csv <- list.files(here("Data/Original Data/RRR5/All_Data/Data"), pattern="*.csv", 
+full.csv <- list.files(here("Data/Original Data/RRR5/Data"), pattern="*.csv", 
                        full.names = TRUE)
 # extract the author's name from the data files
 authors <- sapply(strsplit(csv,split='_',fixed=TRUE),function(x){x[1]}) # authors' names
@@ -77,9 +77,12 @@ RRR5_IM_items <- c("Q4.5_1", "Q4.5_2", "Q4.5_3", "Q4.5_4", "Q4.5_5", "Q4.6_1", "
                    "Q4.6_4", "Q4.6_5", "Q4.7_1", "Q4.7_2", "Q4.7_3", "Q4.7_4", "Q4.7_5", "Q4.8_1",
                    "Q4.8_2", "Q4.8_3", "Q4.8_4", "Q4.8_5")
 
+# group
+group_item <- "Q7.1"
+
 # as these items are unfortunately not stored as the correct class (?), we use our convert function on 
-cr_df[,c(RRR5_SJ_items, RRR5_EF_items, RRR5_NF_items, RRR5_VF_items, RRR5_LF_items, RRR5_SD_items, RRR5_IM_items)] <- 
-  apply(cr_df[,c(RRR5_SJ_items, RRR5_EF_items, RRR5_NF_items, RRR5_VF_items, RRR5_LF_items, RRR5_SD_items, RRR5_IM_items)], 2, convert)
+cr_df[,c(RRR5_SJ_items, RRR5_EF_items, RRR5_NF_items, RRR5_VF_items, RRR5_LF_items, RRR5_SD_items, RRR5_IM_items, group_item)] <- 
+  apply(cr_df[,c(RRR5_SJ_items, RRR5_EF_items, RRR5_NF_items, RRR5_VF_items, RRR5_LF_items, RRR5_SD_items, RRR5_IM_items, group_item)], 2, convert)
 
 
 # A number of items need recoding, this is done over the following lines:
@@ -114,12 +117,15 @@ cr_df <- cr_df[-c(107, 134, 1276, 1281, 1499, 1502),]
 # retain only participants, which require no exclusion from further analyses
 cr_df <- cr_df[which(cr_df$Exclude == 0),]
 
+cr_df[,group_item] <- 2-cr_df[,group_item] # recode so high = 1, low = 0
+
 # A number of abundant variables remain in the file. As their names start with either "V" or "Location" we cam easily drop those:
 cr_df <- cr_df[,-c(grep("^V", names(cr_df)), grep("^Location", names(cr_df)))]
 
 
 # only keeping the variables explicitly relevant for this scale:
-cr_df <- cr_df[,c(RRR5_SD_items, "source")]
+cr_df <- cr_df[,c(RRR5_SD_items, "source")] %>% 
+  mutate(group = cr_df[,group_item])
 
 
 write.csv(cr_df, here("Data/Extracted (Project) Data/Finkel_Self_Deception.csv"), row.names = FALSE)

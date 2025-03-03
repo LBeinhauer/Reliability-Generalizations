@@ -54,9 +54,11 @@ ia_df <- ml3_Hart
 
 # adding a "factor" column
 ia_df <- as.data.frame(ia_df) %>%
-  mutate(factor = Condition)
+  mutate(factor = Condition,
+         group = ifelse(Condition == 1, 1, 0))
 
-ia_df <- ia_df[,c("A1", "A2", "A3", "source")] # keep only relevant items for this scale
+ia_df <- ia_df[,c("A1", "A2", "A3", "source", "group")] # keep only relevant items for this scale
+
 
 write.csv(ia_df, here("Data/Extracted (Project) Data/Hart_Criminal_Intentionality.csv"), row.names = FALSE)
 

@@ -13,14 +13,16 @@ Alter_dat <- data.frame(alt1.3 = ifelse(ML2_S1$alt1.3 == 7, 1, 0), # correct ans
                         alt2.3 = ifelse(ML2_S1$alt2.3 == 7, 1, 0), # correct answer is 7
                         alt2.7 = ifelse(ML2_S1$alt2.7 == 3, 1, 0), # correct answer is 3
                         alt2.8 = ifelse(ML2_S1$alt2.8 == 8, 1, 0), # correct answer is 8
-                        source = ML2_S1$Source.Primary)  # Replication site
+                        source = ML2_S1$Source.Primary,
+			group = ifelse(is.na(ML2_S1$alt1.3), ifelse(is.na(ML2_S1$alt2.3), NA, 0), 1))  # Replication site
 
 # observations on alt1.3 belong to condition 1, on alt2.3 belong to condition 0.
 #   therefore we need to combine the data from these two columns (join might have been easier?)
 da_df <- data.frame(item3 = ifelse(is.na(Alter_dat$alt1.3), Alter_dat$alt2.3, Alter_dat$alt1.3),
                     item7 = ifelse(is.na(Alter_dat$alt1.7), Alter_dat$alt2.3, Alter_dat$alt1.7),
                     item8 = ifelse(is.na(Alter_dat$alt1.8), Alter_dat$alt2.3, Alter_dat$alt1.8),
-                    source = Alter_dat$source) %>%  
+                    source = Alter_dat$source,
+		    group = Alter_dat$group) %>%  
   filter(ML2_S1$Language == "English", ML2_S1$Setting == "In a lab", !is.na(item3 + item7 + item8)) 
 									# authors state, that only English-speaking lab samples
                                                                         #  count as direct replications

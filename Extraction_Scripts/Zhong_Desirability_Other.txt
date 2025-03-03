@@ -23,7 +23,9 @@ Zhong_dat <- data.frame(item2 = ML2_S2$zhon.dv.1_2,   # items concern desirabili
          !is.na((item1 + item4 + item5 + item6 + item9)))   # participants with missing data on the clean, other or factor variable are excluded
 
 
-Zhong_df <- Zhong_dat[,-grep("^factor", names(Zhong_dat))] # columns of factors are not needed
+Zhong_df <- Zhong_dat[,-grep("^factor", names(Zhong_dat))]  %>% 
+  mutate(group = Zhong_dat$factor)
+
 
 Zhong_df <- Zhong_df[,!names(Zhong_df) %in% c("item1", "item4", "item5", "item6", "item9")]
 

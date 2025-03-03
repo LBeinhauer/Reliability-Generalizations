@@ -9,6 +9,7 @@ ea_df <- data.frame(math1 = ML1_dat$iatexplicitmath1,
                     math5 = ML1_dat$iatexplicitmath5,
                     math6 = ML1_dat$iatexplicitmath6,
                     source = ML1_dat$referrer) %>%
+    mutate(group = ifelse(ML1_dat$partgender == 2, yes = 1, no = ifelse(is.na(ML1_dat$partgender), NA, 0))) %>% 
   filter(ML1_dat$IATEXPfilter == 1, !is.na(ML1_dat$d_art))
 
 write.csv(ea_df, here("Data/Extracted (Project) Data/Nosek_Explicit_Math.csv"), row.names = FALSE)

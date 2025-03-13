@@ -484,14 +484,69 @@ apply_Bootstrap_SE_Project.specific <- function(data, var.component = c("TRUE", 
   
 }
 
+bt_var_m <- function(rma_obj){
+  exp(rma_obj$b[1] + (.5*rma_obj$tau2))
+}
+
+bt_var_v <- function(rma_obj){
+  (exp(rma_obj$tau2) - 1) * exp((2 * rma_obj$b[1]) + rma_obj$tau2)
+}
+
+# function to estimate heterogeneity in Cronbach's Alpha, if transformation was used
+var_Bonnett_backtransformed <- function(rma_obj){
+  (((-exp(rma_obj$b[1]))^2) * rma_obj$tau2) + (.5*((-exp(rma_obj$b[1]))^2)*(rma_obj$tau2^2)) + ((-exp(rma_obj$b[1])) * (-exp(rma_obj$b[1])) * (rma_obj$tau2^2))
+}
+
+# function to estimate mean value of Cronbach's Alpha, if transformation was used
+mean_Bonnett_backtransformed <- function(rma_obj){
+  1 - exp(rma_obj$b[1]) + ((-exp(rma_obj$b[1])) / 2) * rma_obj$tau2
+}
 
 my_forest_plot <- function(rma.fit, rma.data, main.title = "Forest Plot", 
-                           x.lab = "Estimate", ci.lvl = .975, CI.display = FALSE){
+                           x.lab = "Estimate", ci.lvl = .975, CI.display = FALSE,
+                           transformation = c("None", "ln", "Bonett")){
   
-  # Calculate lower and upper limits of confidence levels, for each replication's estimate
-  cil <- rma.fit$yi[1:length(rma.fit$yi)] - qnorm(ci.lvl)*sqrt(rma.fit$vi[1:length(rma.fit$vi)])
-  ciu <- rma.fit$yi[1:length(rma.fit$yi)] + qnorm(ci.lvl)*sqrt(rma.fit$vi[1:length(rma.fit$vi)])
+  if(transformation == "None"){
+    # Calculate lower and upper limits of confidence levels, for each replication's estimate
+    cil <- rma.fit$yi[1:length(rma.fit$yi)] - qnorm(ci.lvl)*sqrt(rma.fit$vi[1:length(rma.fit$vi)])
+    ciu <- rma.fit$yi[1:length(rma.fit$yi)] + qnorm(ci.lvl)*sqrt(rma.fit$vi[1:length(rma.fit$vi)])
+    
+    yi <- rma.fit$yi[1:length(rma.fit$yi)]
+    
+    b <- rma.fit$b[1]
+    bll <- rma.fit$ci.lb
+    bul <- rma.fit$ci.ub
+    
+    lab_labels <- rma.data$source[which(!is.na(rma.data$SE))]
+  }
   
+  if(transformation == "ln"){
+    # Calculate lower and upper limits of confidence levels, for each replication's estimate
+    cil <- exp(rma.fit$yi[1:length(rma.fit$yi)] - qnorm(ci.lvl)*sqrt(rma.fit$vi[1:length(rma.fit$vi)]))
+    ciu <- exp(rma.fit$yi[1:length(rma.fit$yi)] + qnorm(ci.lvl)*sqrt(rma.fit$vi[1:length(rma.fit$vi)]))
+    
+    yi <- exp(rma.fit$yi[1:length(rma.fit$yi)])
+    
+    b <- bt_var_m(rma.fit)
+    bll <- exp(rma.fit$ci.lb)
+    bul <- exp(rma.fit$ci.ub)
+    
+    lab_labels <- rma.data$source[which(!is.na(rma.data$SE))]
+  }
+  
+  if(transformation == "Bonett"){
+    # Calculate lower and upper limits of confidence levels, for each replication's estimate
+    cil <- 1 - exp(rma.fit$yi[1:length(rma.fit$yi)] - qnorm(ci.lvl)*sqrt(rma.fit$vi[1:length(rma.fit$vi)]))
+    ciu <- 1 - exp(rma.fit$yi[1:length(rma.fit$yi)] + qnorm(ci.lvl)*sqrt(rma.fit$vi[1:length(rma.fit$vi)]))
+    
+    yi <- 1 - exp(rma.fit$yi[1:length(rma.fit$yi)])
+    
+    b <- mean_Bonnett_backtransformed(rma.fit)
+    bll <- 1-exp(rma.fit$ci.lb)
+    bul <- 1-exp(rma.fit$ci.ub)
+    
+    lab_labels <- rma.data$source[which(!is.na(rma.data$SE))]
+  }
   
   # weights <- 1/sqrt(rma.fit$vi+rma.fit$tau2)
   # weights.scaled <- weights/mean(weights)
@@ -500,7 +555,7 @@ my_forest_plot <- function(rma.fit, rma.data, main.title = "Forest Plot",
   p <- ggplot() + # initialize ggplot
     
     # plot point estimates
-    geom_point(aes(x = rma.fit$yi, y = c(5:(length(rma.fit$yi)+4))
+    geom_point(aes(x = yi, y = c(3:(length(yi)+2))
     #                , size = weights.rescaled
                    ), shape = 15) + 
     
@@ -508,29 +563,22 @@ my_forest_plot <- function(rma.fit, rma.data, main.title = "Forest Plot",
     # geom_vline(xintercept = 0, linetype = "dashed") +
     
     # add horizontal line for CI of each replication's estimate
-    geom_segment(aes(x = cil, y = c(5:(length(rma.fit$yi)+4)), xend = ciu, yend = c(5:(length(rma.fit$yi)+4)))) +
+    geom_segment(aes(x = cil, y = c(3:(length(yi)+2)), xend = ciu, yend = c(3:(length(yi)+2)))) +
     
     # ggplot theme
     theme_minimal() +
     
-    # plot meta analytic point estimate
-    geom_point(aes(x = rma.fit$b[1], y = 1), shape = 18) +
-    
-    #add CI-line for meta-analytic point estimate
-    geom_segment(aes(x = rma.fit$b[1] - qnorm(ci.lvl)*rma.fit$se, y = 1, 
-                     xend = rma.fit$b[1] + qnorm(ci.lvl)*rma.fit$se, yend = 1)) +
-    
     # add vertical upper & lower-limit "fence"-lines, for each replication's estimate
-    geom_segment(aes(x = cil, xend = cil, y = (c(5:(length(rma.fit$yi)+4))+.3), yend = (c(5:(length(rma.fit$yi)+4))-.3) )) +
-    geom_segment(aes(x = ciu, xend = ciu, y = (c(5:(length(rma.fit$yi)+4))+.3), yend = (c(5:(length(rma.fit$yi)+4))-.3) )) +
+    geom_segment(aes(x = cil, xend = cil, y = (c(3:(length(yi)+2))+.3), yend = (c(3:(length(yi)+2))-.3) )) +
+    geom_segment(aes(x = ciu, xend = ciu, y = (c(3:(length(yi)+2))+.3), yend = (c(3:(length(yi)+2))-.3) )) +
     
     # add vertical upper- & lower-limit "fence lines, for meta-analytic point estimate
-    geom_segment(aes(x = rma.fit$b[1] - qnorm(ci.lvl)*rma.fit$se, y = (1+.3), 
-                     xend = rma.fit$b[1] - qnorm(ci.lvl)*rma.fit$se, yend = (1-.3))) +
-    geom_segment(aes(x = rma.fit$b[1] + qnorm(ci.lvl)*rma.fit$se, y = (1+.3), 
-                     xend = rma.fit$b[1] + qnorm(ci.lvl)*rma.fit$se, yend = (1-.3))) +
+    geom_polygon(data = data.frame(x = c(bul, b, bll, b),
+                                   y = c(1, 1-.7, 1, 1+.7)),
+                 aes(x = x, y = y),
+                 colour = "black", fill = "black") +
     
-    
+    geom_abline(slope = 0, intercept = 2, colour = "black") +
     
     
     # labs & titles
@@ -540,18 +588,18 @@ my_forest_plot <- function(rma.fit, rma.data, main.title = "Forest Plot",
   
   if(CI.display){
     p <- p + 
-      scale_y_continuous(breaks = c(1, (5:(length(rma.fit$yi)+4))), 
-                         labels = c("RE Model", unique(as.character(rma.data$source))),
+      scale_y_continuous(breaks = c(1, (3:(length(yi)+2))), 
+                         labels = c("RE Model", lab_labels),
                          
-                         sec.axis = dup_axis(breaks = c(1, (5:(length(rma.fit$yi)+4))),
-                                             labels = c(paste0("[", round(rma.fit$b[1] - qnorm(ci.lvl)*rma.fit$se, 2), ";", round(rma.fit$b[1] + qnorm(ci.lvl)*rma.fit$se, 2), "]"), 
+                         sec.axis = dup_axis(breaks = c(1, (3:(length(yi)+2))),
+                                             labels = c(paste0("[", round(bll, 2), ";", round(bul), "]"), 
                                                         paste0("[", round(cil, 2), ";", round(ciu, 2), "]")),
                                              name = ""))
-    # p <- p + geom_text(aes(y = c(5:(length(rma.fit$yi)+4)), x = (max(ciu) + abs(max(ciu))*.05),
+    # p <- p + geom_text(aes(y = c(3:(length(rma.fit$yi)+2)), x = (max(ciu) + abs(max(ciu))*.05),
     #               label = paste0("[", round(cil, 2), ";", round(ciu, 2), "]")))
   }else{
     p <- p +     # adjust labels on y-axis, to display lab-abreviations
-      scale_y_continuous(breaks = c(1, (5:(length(rma.fit$yi)+4))), labels = c("RE Model", unique(as.character(rma.data$source)))) 
+      scale_y_continuous(breaks = c(1, (3:(length(yi)+2))), labels = c("RE Model", lab_labels)) 
   }
   
   p

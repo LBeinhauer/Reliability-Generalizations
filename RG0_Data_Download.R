@@ -37,6 +37,7 @@ osfr::osf_retrieve_file("https://osf.io/nqg97") %>%
 # the data-file is named very generically "Datasets.zip" - it is renamed here to avoid confusion
 file.rename(here("Data/Downloaded Data/Datasets.zip"), here("Data/Downloaded Data/ML1_Datasets.zip"))
 
+
 # unzip the directory and extract only the specific data-file required for anayses
 unzip(here("Data/Downloaded Data/ML1_Datasets.zip"),
       files = "Data/CleanedDataset.sav",
@@ -174,7 +175,7 @@ zip::unzip(here("Data/Downloaded Data/RRR8_Meta-analysis_final.zip"),
 
 # Additionally, in one of the lab-directories, there seems to be an erroneous data.file, which we remove here
 #  by hand, to enable further analyses down the line.
-file.remove(here("/Data/Original Data/RRR8/Meta-analysis/Krahmer_data/Rentzelas_data_complete.csv"))
+file.remove(here("Data/Original Data/RRR8/Meta-analysis/Krahmer_data/Rentzelas_data_complete.csv"))
 
 
 

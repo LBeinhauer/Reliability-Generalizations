@@ -51,4 +51,4 @@ sapply(Extraction_Scripts, FUN = function(x){
 ) # (in folder "Data/Extracted (Project) Data")
 
 
-detach("package:MASS", unload = TRUE)
+invisible(lapply(paste0('package:', names(sessionInfo()$otherPkgs)), detach, character.only=TRUE, unload=TRUE))

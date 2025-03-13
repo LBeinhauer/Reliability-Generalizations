@@ -54,15 +54,7 @@ names(Bonett.Alpha_rma.list) <- substr(Bonett.Alpha_estimates_paths[-7],
 saveRDS(Bonett.Alpha_rma.list, file = here("Data/Shiny Data/Bonett.Alpha_rma.list.RData"))
 
 
-# function to estimate heterogeneity in Cronbach's Alpha, if transformation was used
-var_Bonnett_backtransformed <- function(rma_obj){
-  (((-exp(rma_obj$b[1]))^2) * rma_obj$tau2) + (.5*((-exp(rma_obj$b[1]))^2)*(rma_obj$tau2^2)) + ((-exp(rma_obj$b[1])) * (-exp(rma_obj$b[1])) * (rma_obj$tau2^2))
-}
 
-# function to estimate mean value of Cronbach's Alpha, if transformation was used
-mean_Bonnett_backtransformed <- function(rma_obj){
-  1 - exp(rma_obj$b[1]) + ((-exp(rma_obj$b[1])) / 2) * rma_obj$tau2
-}
 
 
 

@@ -354,9 +354,38 @@ bootstrap_SE_varE <- function(data, indices, stat = "ALPHA"){
   
 }
 
+bootstrap_SE_varX <- function(data, indices, stat = "ALPHA"){
+  
+  d <- data[indices,]
+  
+  d <- na.omit(d)
+  
+  if(!is.null(d$group[1])){
+    d1 <- d %>% filter(group == 1) %>% dplyr::select(-"group")
+    d0 <- d %>% filter(group == 0) %>% dplyr::select(-"group")
+    
+    n1 <- nrow(d1)
+    n0 <- nrow(d0)
+    
+    var_X1 <- var(rowMeans(d1, na.rm = T), na.rm = T)
+    var_X0 <- var(rowMeans(d0, na.rm = T), na.rm = T)
+    
+    var_X <- ((n1-1)*var_X1 + (n0-1)*var_X0)/(n1+n0-2)
+    
+  }else{
+    
+    var_X <- var(rowMeans(d, na.rm = T), na.rm = T)
+    
+    }
+  
+  
+  return(var_X)
+  
+}
 
 
-apply_Bootstrap_SE_Project.specific <- function(data, var.component = c("TRUE", "ERROR"), R = 100){
+
+apply_Bootstrap_SE_Project.specific <- function(data, var.component = c("TRUE", "ERROR", "TOTAL"), R = 100){
   if(length(var.component) != 1){
     stop("Set var.component as either TRUE or ERROR.")
   }
@@ -365,6 +394,9 @@ apply_Bootstrap_SE_Project.specific <- function(data, var.component = c("TRUE", 
   }
   if(var.component == "ERROR"){
     stat.f <- bootstrap_SE_varE
+  }
+  if(var.component == "TOTAL"){
+    stat.f <- bootstrap_SE_varX
   }
   suppressMessages(
   df <- apply(as.matrix(seq_along(unique(data$source))), MARGIN = 1, FUN = function(x){
@@ -432,6 +464,9 @@ apply_Bootstrap_SE_Project.specific <- function(data, var.component = c("TRUE", 
     }
     if(var.component == "ERROR"){
       var_est <- as.numeric(var_X * (1-alpha))
+    }
+    if(var.component == "TOTAL"){
+      var_est <- as.numeric(var_X)
     }
     
     

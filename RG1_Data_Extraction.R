@@ -50,3 +50,5 @@ sapply(Extraction_Scripts, FUN = function(x){
   }
 ) # (in folder "Data/Extracted (Project) Data")
 
+
+detach("package:MASS", unload = TRUE)

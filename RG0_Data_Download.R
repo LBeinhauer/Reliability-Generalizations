@@ -174,7 +174,7 @@ zip::unzip(here("Data/Downloaded Data/RRR8_Meta-analysis_final.zip"),
 
 # Additionally, in one of the lab-directories, there seems to be an erroneous data.file, which we remove here
 #  by hand, to enable further analyses down the line.
-file.remove("C:/Users/Lukas/Documents/Git_RStudio/Reliability-Generalizations/Data/Original Data/RRR8/Meta-analysis/Krahmer_data/Rentzelas_data_complete.csv")
+file.remove(here("/Data/Original Data/RRR8/Meta-analysis/Krahmer_data/Rentzelas_data_complete.csv"))
 
 
 
@@ -191,9 +191,9 @@ unzip(here("Data/Downloaded Data/SW_Script_and_Data.zip"),
 
 # Unfortunately, in RRR9 one of the data-files (Vanpaemel) consists of a larger number of emptly columns,
 #  which complicate further analyses. Therefore, these columns are removed and the data-file is replaced here
-RRR9_Vanpaemel <- read.csv("C:/Users/Lukas/Documents/Git_RStudio/Reliability-Generalizations/Data/Original Data/RRR9/SW_Script_and_Data/Vanpaemel_Final.csv")
+RRR9_Vanpaemel <- read.csv(here("Data/Original Data/RRR9/SW_Script_and_Data/Vanpaemel_Final.csv"))
 RRR9_Vanpaemel <- RRR9_Vanpaemel[,names(RRR9_Vanpaemel)[!names(RRR9_Vanpaemel) %in% names(RRR9_Vanpaemel)[grep("^X", names(RRR9_Vanpaemel))]]]
-write.csv(RRR9_Vanpaemel, "C:/Users/Lukas/Documents/Git_RStudio/Reliability-Generalizations/Data/Original Data/RRR9/SW_Script_and_Data/Vanpaemel_Final.csv",
+write.csv(RRR9_Vanpaemel, here("Data/Original Data/RRR9/SW_Script_and_Data/Vanpaemel_Final.csv"),
           row.names = FALSE)
 
 ### RRR10 - Mazar et al.
